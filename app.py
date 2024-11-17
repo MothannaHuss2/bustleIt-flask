@@ -28,7 +28,6 @@ def cluster():
         return jsonify({"error": str(e)}), 400
 
 
-
 @app.post('/recommend')
 def recommend():
     # Parse and validate the request body

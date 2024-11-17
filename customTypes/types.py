@@ -71,7 +71,6 @@ class ClusteredUsers(BaseModel):
     cluster: int
 
 
-# User profile returned to AI
 class RawProfile(BaseModel):
     id: int
     introverted: float

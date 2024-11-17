@@ -15,8 +15,8 @@ from sklearn.preprocessing import MinMaxScaler, MultiLabelBinarizer
 import datetime
 from collections import defaultdict
 from pydantic import BaseModel
-from typing import List
-
+from typing import List, Dict
+import utils.api as api
 
 class RawProfile(BaseModel):
     id: int
@@ -31,7 +31,28 @@ class RawProfile(BaseModel):
     assertive: float
     turbulent: float
     preferences: List[str]
+    
+    
+class ClusteredProfile(BaseModel):
+    id: str
+    introverted: float
+    extraverted: float
+    observant: float
+    intuitive: float
+    thinking: float
+    feeling: float
+    judging: float
+    prospecting: float
+    assertive: float
+    turbulent: float
+    preferences: List[str]
+    cluster: int
 
+class data(BaseModel):
+    user_id: str
+    scores: Dict[str, float]
+    preferences: List[str]
+    
 # # model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
 def cluster_single_record(profile: RawProfile) -> int:
     """
@@ -66,6 +87,76 @@ def cluster_single_record(profile: RawProfile) -> int:
     cluster = model.predict(traits_scaled)[0]
 
     return cluster
+
+def process(profile:data):
+    """
+    This function processes a new user's raw input into a feature vector by computing differences
+    between personality trait scores, and scales the resulting vector to a range of [-1, 1].
+
+    Input:
+        - user (list): A list representing the raw personality trait scores of the user.
+
+    Output:
+        - Returns a normalized feature vector (list) for the user after processing and scaling.
+    """
+    new_vector: list[float] = []
+
+    # Calculate the differences between paired personality traits.
+    extraversion = profile.scores['extraverted'] - profile.scores['introverted']
+    intuition = profile.scores['intuitive'] - profile.scores['observant']
+    thinking = profile.scores['thinking'] - profile.scores['feeling']
+    judging = profile.scores['judging'] - profile.scores['prospecting']
+    assertiveness = profile.scores['assertive'] - profile.scores['turbulent']
+    return {
+        "Extraversion": extraversion,
+        "Intuition": intuition,
+        "Thinking": thinking,
+        "Judging": judging,
+        "Assertiveness": assertiveness,
+        'preferences': profile.preferences
+        
+    }
+
+def train(k) -> List[int]:
+    try:
+        clustered_users= api.getAllUsers()
+        processed = [
+            process(user) for user in clustered_users
+        ]
+        
+        ids = [user.user_id for user in clustered_users]
+        
+        
+        df = pd.DataFrame(processed)
+        scaler = MinMaxScaler(feature_range=(-1, 1))
+        traits = ["Extraversion", "Intuition", "Thinking", "Judging", "Assertiveness"]
+        df[traits] = scaler.fit_transform(df[traits])
+        mlb = MultiLabelBinarizer()
+        preferences_encoded = mlb.fit_transform(df["preferences"])
+        preferences_df = pd.DataFrame(preferences_encoded, columns=mlb.classes_)  # type: ignore
+
+        df = pd.concat(
+                [df.reset_index(drop=True), preferences_df.reset_index(drop=True)],
+                axis=1,
+            )
+        
+        X = df[traits].values
+        
+        kmeans = KMeans(n_clusters=k, random_state=42)    
+        clusters = kmeans.fit_predict(X)
+        df['cluster'] = clusters
+        output = df.loc[:, ["cluster"]]
+        json_clusters = []
+        for i in range(len(df)):
+            integer_cluster_value = int(df["cluster"].iloc[i])
+            json_clusters.append({"id": ids[i], "cluster": integer_cluster_value})
+        
+        
+        joblib.dump(kmeans, "models/model_1.pkl")
+        return json_clusters
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return []
 
 # def cluster(k: int, path="", destination_path="") -> pd.DataFrame:
 #     """

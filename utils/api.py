@@ -1,13 +1,21 @@
 from dotenv import load_dotenv
 import os
 import requests
+from pydantic import BaseModel
+from typing import List, Dict
 
 load_dotenv()
 
 token = os.getenv("API_TOKEN")
 api_url = os.getenv("BASE_URI")
 
-def getUsersByCluster(cluster):
+class ClusteredProfile(BaseModel):
+    user_id: str
+    scores: Dict[str, float]
+    preferences: List[str]
+    
+
+def getUsersByCluster(cluster) -> list[ClusteredProfile]:
     try:
         url = f"{api_url}/v1/user/profiles?cluster={cluster}"
         headers= {
@@ -54,7 +62,7 @@ def getUsersByIds(ids):
         return []
 
 
-def getAllUsers():
+def getAllUsers() -> list[ClusteredProfile]:
     try:
         url = f"{api_url}/v1/user/profiles"
         headers= {
@@ -62,7 +70,11 @@ def getAllUsers():
         }
         response = requests.get(url, headers=headers)
         users = response.json()
-        return users
+        print(len(users))
+        print(users[0])
+        casted = [ClusteredProfile(user_id=user['user_id'], scores=user['scores'], preferences=user['preferences']) for user in users]
+        print(len(casted))
+        return casted
     except Exception as e:
         print('Error:', e)
         return []

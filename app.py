@@ -2,13 +2,15 @@ from flask import Flask, render_template
 import joblib
 from flask import Flask, request, jsonify
 from customTypes.types import RecommendationInput, Recommendation, RawProfile
-from ai.ai_cluster import cluster_single_record
+from ai.ai_cluster import cluster_single_record, train
 app = Flask(__name__)
 
 
 # Define the home route
 @app.route('/')
 def home():
+    output =     train(3)
+    print(output)
     return render_template('index.html')
 
 # Define additional routes (example route)
@@ -38,10 +40,8 @@ def recommend():
         return jsonify({"error": str(e)}), 400
     recommended_tasks = {"task1": 1, "task2": 2}  # Example dictionary with task names and priority/importance
 
-    # Create a Recommendation instance
     recommendation = Recommendation(tasks=recommended_tasks)
 
-    # Return the recommendation as JSON
     return jsonify(recommendation.dict())
 
 

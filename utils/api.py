@@ -1,44 +1,16 @@
 from dotenv import load_dotenv
 import os
 import requests
-from pydantic import BaseModel
-from typing import List, Dict
 import json
 from logger import get_logger
+from customTypes import ClusteredProfile, BatchedTasks, Schedule
 load_dotenv()
 logger = get_logger('External API')
 
 token = os.getenv("API_TOKEN")
 api_url = os.getenv("BASE_URI")
 
-class ClusteredProfile(BaseModel):
-    user_id: str
-    scores: Dict[str, float]
-    preferences: List[str]
-    cluster: int
-    
-class DailyTask(BaseModel):
-    task_id: str
-    name: str
-    category: str
-    start_time: str
-    end_time: str
-    completed: bool
-    created_at: str
-    updated_at: str
-    
-class DailySchedule(BaseModel):
-    total_tasks: int
-    completed_tasks: int
-    tasks: List[DailyTask]
-    
-class Schedule(BaseModel):
-    user_id: str
-    data: Dict[str, DailySchedule]
-class BatchedTasks(BaseModel):
-    user_id: str
-    all_tasks: List[DailyTask]
-    
+
 
     
 
@@ -54,7 +26,7 @@ def getUsersByCluster(cluster) -> list[ClusteredProfile]:
         casted = [ClusteredProfile(user_id=user['user_id'], scores=user['scores'], preferences=user['preferences'], cluster=cluster) for user in users]
         return casted
     except Exception as e:
-        print('Error:', e)
+        logger.info('Error at api.getUsersByCluster:', e)
         return []
 
 
@@ -71,7 +43,7 @@ def getUserById(id: str) -> ClusteredProfile:
         casted = ClusteredProfile(user_id=user['user_id'], scores=user['scores'], preferences=user['preferences'], cluster=1)
         return casted
     except Exception as e:
-        print("Error " + e)
+        logger.info("Error at api.getUserById " + e)
         return None
 
 def getUsersByIds(ids):
@@ -88,10 +60,24 @@ def getUsersByIds(ids):
         users = response.json()
         return users
     except Exception as e:
-        print('Error:', e)
+        logger.info(f'Error at getUsersByIds: {e}')
         return []
 
 
+
+def getAllTasks() -> list[BatchedTasks]:
+    try:
+        url = f"{api_url}/v1/tasks"
+        header = {
+            'Authorization': f'Bearer {token}'
+        }
+        response = requests.get(url, headers=header)
+        tasks = response.json()
+        casted = [BatchedTasks(user_id=task['user_id'], all_tasks=task['all_tasks']) for task in tasks]
+        return casted
+    except Exception as e:
+        logger.info(f'Erorr at getAllTasks: {e}')
+        return []
 def getAllUsers() -> list[ClusteredProfile]:
     try:
         url = f"{api_url}/v1/user/profiles"
@@ -103,7 +89,7 @@ def getAllUsers() -> list[ClusteredProfile]:
         casted = [ClusteredProfile(user_id=user['user_id'], scores=user['scores'], preferences=user['preferences']) for user in users]
         return casted
     except Exception as e:
-        print('Error:', e)
+        logger.info('Error at api.getAllUsers:', e)
         return []
 
 def getUserSchedule(id: str) -> Schedule:
@@ -117,7 +103,7 @@ def getUserSchedule(id: str) -> Schedule:
         casted = Schedule(user_id=schedule['user_id'], data=schedule['data'])
         return casted
     except Exception as e:
-        print("Error " + e)
+        logger.info("Error at api.getUserSchedule " + e)
         return None
 
 
@@ -147,7 +133,7 @@ def getBatchedTasks(ids: list[str]) -> list[BatchedTasks]:
         
         return casted
     except Exception as e:
-        print("Error in getBatchedTasks " + e.__str__())
+        logger.info(f"Error in getBatchedTasks  + e.__str__()")
         return []
 
 def getRangedSchedule(id:str, startDate:str, range: int) -> Schedule:
@@ -165,5 +151,5 @@ def getRangedSchedule(id:str, startDate:str, range: int) -> Schedule:
         casted = Schedule(user_id=schedule['user_id'], data=schedule['data'])
         return casted
     except Exception as e:
-        print("Error " + e)
+        logger.info(f'Error at getRangedSchedule: {e}')
         return None

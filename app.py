@@ -1,7 +1,6 @@
 from flask import Flask, render_template
 import joblib
 from flask import Flask, request, jsonify
-from customTypes.types import RecommendationInput, Recommendation, RawProfile
 import utils.api as api
 import ai.ai_cluster as AI
 app = Flask(__name__)
@@ -31,7 +30,7 @@ def about():
 @app.post("/cluster")
 def cluster():
     try:
-        profile = RawProfile(**request.json)
+        profile = request.json
         cluster = int(AI.cluster_single_record(profile))
         return jsonify({"cluster": cluster})
     except ValueError as e:
@@ -42,13 +41,13 @@ def cluster():
 def recommend():
     # Parse and validate the request body
     try:
-        recommendation_input = RecommendationInput(**request.json)
+        recommendation_input = request.json
     except ValueError as e:
         # Return validation error if the data is invalid
         return jsonify({"error": str(e)}), 400
     recommended_tasks = {"task1": 1, "task2": 2}  # Example dictionary with task names and priority/importance
 
-    recommendation = Recommendation(tasks=recommended_tasks)
+    recommendation = recommended_tasks
 
     return jsonify(recommendation.dict())
 

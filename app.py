@@ -2,16 +2,24 @@ from flask import Flask, render_template
 import joblib
 from flask import Flask, request, jsonify
 from customTypes.types import RecommendationInput, Recommendation, RawProfile
-from ai.ai_cluster import cluster_single_record, train
+import utils.api as api
+import ai.ai_cluster as AI
 app = Flask(__name__)
+
+
+
+
 
 
 # Define the home route
 @app.route('/')
 def home():
-    output =     train(3)
-    print(output)
-    return render_template('index.html')
+    id = '542172eb-c417-46c0-b9b1-78d1b7630bf5'
+    user = api.getUserById(id)
+    print(user)
+    sims = AI.recommend_weekly_tasks(user)
+    print(sims)
+    return sims
 
 # Define additional routes (example route)
 @app.route('/about')
@@ -24,7 +32,7 @@ def about():
 def cluster():
     try:
         profile = RawProfile(**request.json)
-        cluster = int(cluster_single_record(profile))
+        cluster = int(AI.cluster_single_record(profile))
         return jsonify({"cluster": cluster})
     except ValueError as e:
         return jsonify({"error": str(e)}), 400

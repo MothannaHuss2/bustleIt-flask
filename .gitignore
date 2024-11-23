@@ -15,3 +15,4 @@ __pycache__/
 
 # Ignore other files or folders as needed
 instance/
+*.log

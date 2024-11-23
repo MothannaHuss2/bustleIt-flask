@@ -10,7 +10,7 @@ app = Flask(__name__)
 # Define the home route
 @app.route('/')
 def home():
-    id = '542172eb-c417-46c0-b9b1-78d1b7630bf5'
+    id = ''
     user = api.getUserById(id)
     print(user)
     sims = AI.recommend_weekly_tasks(user)
@@ -79,7 +79,6 @@ def recommend():
 
 @app.post('/recommend_weekly')
 def recommend_weekly():
-    # Parse and validate the request body
     try:
         recommendation_input = request.json
         casted = WeeklyRecommendationInput(user=recommendation_input['user'], work_end_time=recommendation_input['work_end_time'], work_start_time=recommendation_input['work_start_time'], sleep_time=recommendation_input['sleep_time'])

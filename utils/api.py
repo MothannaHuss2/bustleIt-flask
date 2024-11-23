@@ -124,7 +124,7 @@ def getBatchedTasks(ids: list[str]) -> list[BatchedTasks]:
         casted = []
         totalTasks = 0
         for task in tasks:
-            logger.info(f'User Schedule {task["user_id"]} has {len(task["all_tasks"])} tasks')
+            # logger.info(f'User Schedule {task["user_id"]} has {len(task["all_tasks"])} tasks')
             totalTasks += len(task["all_tasks"])
             casted.append(
                 BatchedTasks(user_id=task['user_id'], all_tasks=task['all_tasks'])

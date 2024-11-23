@@ -10,28 +10,13 @@ from pydantic import BaseModel
 from typing import List, Dict, Any
 import utils.api as api
 import random
-from customTypes import ClusteredProfile, BatchedTasks, Schedule, DailySchedule, DailyTask
+from customTypes import ClusteredProfile, BatchedTasks, Schedule, DailySchedule, DailyTask, RawProfile
 from sentence_transformers import SentenceTransformer
 from logger import get_logger
 import time
 
-
 logger = get_logger('AI')
-
-class RawProfile(BaseModel):
-    id: int
-    introverted: float
-    extraverted: float
-    observant: float
-    intuitive: float
-    thinking: float
-    feeling: float
-    judging: float
-    prospecting: float
-    assertive: float
-    turbulent: float
-    preferences: List[str]
-    
+model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
     
 class AiClusteredProfile(BaseModel):
     id: str
@@ -67,24 +52,22 @@ def cluster_single_record(profile: RawProfile) -> int:
     int: The cluster assignment for the single data point.
     """
     # Prepare personality traits data only (exclude preferences if KMeans was trained on traits only)
-    profile_data = {
-        "Extraversion": profile.extraverted - profile.introverted,
-        "Intuition": profile.intuitive - profile.observant,
-        "Thinking": profile.thinking - profile.feeling,
-        "Judging": profile.judging - profile.prospecting,
-        "Assertiveness": profile.assertive - profile.turbulent,
-    }
-
-    # Scale the personality traits
-    traits_df = pd.DataFrame([profile_data])
-
-    model = joblib.load("models/model.pkl")
+    processed = process(profile)
+    df = pd.DataFrame([processed])
     scaler = MinMaxScaler(feature_range=(-1, 1))
-
-    traits_scaled = scaler.fit_transform(traits_df)
-
-    # Predict the cluster for this single record (only using the traits)
-    cluster = model.predict(traits_scaled)[0]
+    traits = ["Extraversion", "Intuition", "Thinking", "Judging", "Assertiveness"]
+    df[traits] = scaler.fit_transform(df[traits])
+    mlb = MultiLabelBinarizer()
+    preferences_encoded = mlb.fit_transform(df["preferences"])
+    preferences_df = pd.DataFrame(preferences_encoded, columns=mlb.classes_)  # type: ignore
+    df = pd.concat(
+        [df.reset_index(drop=True), preferences_df.reset_index(drop=True)],
+        axis=1,
+    )
+    traits_df = df[traits]
+    model = joblib.load("models/model.pkl")
+    values = traits_df.values
+    cluster = model.predict(values)[0]
 
     return cluster
 
@@ -236,9 +219,14 @@ def calculate_weighted_engagement(user_tasks: list[DailyTask], max_minutes):
 
 
 
-
-
-def recommend(user: ClusteredProfile, range, work_end_time=17, sleep_time=24,work_start_time=8, with_time=True, day=None):
+def recommend(
+user: ClusteredProfile, 
+range=30,
+work_end_time=17,
+sleep_time=24, 
+work_start_time=8, 
+with_time=True, 
+day=None):
     """_summary_
 
     Args:
@@ -252,51 +240,48 @@ def recommend(user: ClusteredProfile, range, work_end_time=17, sleep_time=24,wor
         _type_: _description_
     """
     try:
-        scores = user.scores
-        preferences = user.preferences
+        scores = np.array(user.scores)  
+        preferences = np.array(user.preferences) 
         user_id = user.user_id
         cluster = user.cluster
-        new_user = getScores(user)
+        new_user = np.array(getScores(user)) 
+        
         people_in_cluster = api.getUsersByCluster(cluster)
-        similar_ids = [user.user_id for user in people_in_cluster]
+        similar_ids = np.array([user.user_id for user in people_in_cluster]) 
         
-        scores = [
-            getScores(user) for user in people_in_cluster
-        ]
+        scores = np.array([getScores(user) for user in people_in_cluster])  
         
-        reshaped = np.reshape(new_user, (1, -1))
-        similarity_scores = cosine_similarity(reshaped, scores)
-        top_similar_indices = similarity_scores.argsort()[0][-5:]
-        ids = [similar_ids[i] for i in top_similar_indices]
-        ids.append('542172eb-c417-46c0-b9b1-78d1b7630bf5')
-        user_tasks_og = getTasks(user_id, range, datetime.datetime.now().strftime('%Y-%m-%d'), preferences)
+        reshaped = np.reshape(new_user, (1, -1))  
+        similarity_scores = cosine_similarity(reshaped, scores)  
+        top_similar_indices = np.argsort(similarity_scores[0])[-5:]  
+        ids = list(similar_ids[top_similar_indices])  
+        ids.extend(['542172eb-c417-46c0-b9b1-78d1b7630bf5', user_id])  
         
         tasks = [
-            getTasks(id, 30, datetime.datetime.now().strftime('%Y-%m-%d'), preferences) for id in ids
+            getTasks(id, range, datetime.datetime.now().strftime('%Y-%m-%d'), preferences) for id in ids
         ]
-        tasks.append(user_tasks_og)
-        tasks_flat = [task for sublist in tasks for task in sublist]
+        user_tasks_og = tasks[-1]
         
-        user_tasks = api.getBatchedTasks([user_id])
         others = api.getBatchedTasks(ids)
-        others.append(user_tasks[0])
-        all = [
-            task.all_tasks for task in others
+        user_tasks = [task for task in others if task.user_id == user_id]
+        
+        all_tasks = [
+            np.array(task.all_tasks) for task in others  
         ]
-        flat  = [task for sublist in all for task in sublist]
-        engagement_rate = .6
+        flat = np.array([task for sublist in all_tasks for task in sublist])  # Flattened tasks
+        
+        engagement_rate = 0.6
         similar_users_engagement_rate = 1 - engagement_rate
         
         numberOfTasks = 5
         tasks_from_user_history = int(numberOfTasks * engagement_rate)
         tasks_from_others = int(numberOfTasks * similar_users_engagement_rate)
         
+        sample_from_user_history = np.array(random.sample(user_tasks[0].all_tasks, tasks_from_user_history))
+        sample_from_others = np.array(random.sample(flat.tolist(), tasks_from_others))  
         
-        
-        sample_from_user_history = random.sample(user_tasks[0].all_tasks, tasks_from_user_history)
-        sample_from_others = random.sample(flat, tasks_from_others)
-        today = getTodayName() if day == None else day
-        all_tasks = [
+        today = getTodayName() if day is None else day
+        all_tasks_combined = [
             {
                 'name': task.name,
                 'category': task.category,
@@ -304,22 +289,22 @@ def recommend(user: ClusteredProfile, range, work_end_time=17, sleep_time=24,wor
                 'endTime': task.end_time,
                 'completed': task.completed,
             }
-            for task in sample_from_user_history + sample_from_others  if getDateDay(task.created_at) == today
-        ]      
-        model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
+            for task in np.concatenate((sample_from_user_history, sample_from_others))
+            if getDateDay(task.created_at) == today
+        ]
+        
         x = recommend_task_start_times(
-            all_tasks,
+            all_tasks_combined,
             user_tasks_og,
             work_end_time,
             sleep_time,
             model=model
-            
-        )     
-            
-        return x if with_time else all_tasks 
+        )
+        return x if with_time else all_tasks_combined
     except Exception as e:
         print(f"An error occurred: {e}")
         return {}
+
 
 
 
@@ -344,7 +329,6 @@ def get_name_similarity(task1: Dict[str, Any], task2: Dict[str, Any], model) -> 
     task1_embedding = model.encode(task1_name)
     task2_embedding = model.encode(task2_name)
 
-    # Ensure embeddings are 2D arrays
     task1_embedding = np.atleast_2d(task1_embedding)
     task2_embedding = np.atleast_2d(task2_embedding)
 
@@ -503,25 +487,6 @@ def getAllTasks(id):
     except Exception as e:
         print(f"An error occurred in getAllTasks: {e}")
         return []
-# def get_user_tasks(user_id: int) -> List[str]:
-#     """
-#     Retrieves tasks that the user has previously completed.
-#     """
-#     try:
-#         if user_id < 0:
-#             return []
-            
-#         user_task_table = pd.DataFrame(get_processed_tasks_users())
-#         if user_task_table.empty:
-#             return []
-            
-#         user_tasks = user_task_table.loc[user_task_table['id'] == user_id, 'tasks'].values
-#         return user_tasks[0] if user_tasks.size > 0 else [] # type: ignore
-        
-#     except Exception as e:
-#         print(f"Error in get_user_tasks: {e}")
-#         return []
-
 
 def findKSimilarUsers(people: List[ClusteredProfile], user: ClusteredProfile, k: int) -> List[ClusteredProfile]:
     """
@@ -548,7 +513,6 @@ def findKSimilarUsers(people: List[ClusteredProfile], user: ClusteredProfile, k:
         similarity_scores = cosine_similarity(reshaped, scores)
         top_similar_indices = similarity_scores.argsort()[0][-5:]
         ids = [similar_ids[i] for i in top_similar_indices]
-        print("ids: ", ids)
         return [user for user in people if user.user_id in ids]
     except Exception as e:
         print(f"An error occurred in findKSimilarUsers : {e}")
@@ -580,12 +544,12 @@ def recommend_weekly_tasks(
         today = getTodayName()
         similar_users = findKSimilarUsers(api.getUsersByCluster(user.cluster), user, 5)
         similar_users_ids = [user.user_id for user in similar_users]
-        logger.info(f"Similar users: {similar_users_ids}")
+        # logger.info(f"Similar users: {similar_users_ids}")
         
         similar_users_tasks = getAllTasks(similar_users_ids)
         similar_users_tasks = [task for task in similar_users_tasks if task.category in user.preferences]
         combined = similar_users_tasks + user_tasks
-        logger.info(f'Today is {today}')
+        # logger.info(f'Today is {today}')
         
         
         all_tasks = [
@@ -597,13 +561,11 @@ def recommend_weekly_tasks(
         ]
         
         user_tasks_df = pd.DataFrame(all_tasks, columns=['name', 'category'])
-        logger.info(f'User tasks: {len(user_tasks_df)}')
+        # logger.info(f'User tasks: {len(user_tasks_df)}')
 
-        # Get the next Saturday
         today = datetime.datetime.today()
         next_saturday = get_next_saturday(today)
 
-        # Define day order
         days_order = [
             "Saturday", "Sunday", "Monday", 
             "Tuesday", "Wednesday", "Thursday", "Friday"
@@ -652,7 +614,7 @@ def recommend_weekly_tasks(
 
                     weekly_schedule[day_name] = daily_schedule
                     
-                except Exception as day_error:
+                except Exception:
                     weekly_schedule[day_name] = {
                         "day": day_name,
                         "date": current_date.strftime("%Y-%m-%d"),
@@ -697,10 +659,9 @@ def schedule_tasks_for_day(
     Returns:
         list: Scheduled tasks with start and end times.
     """
-    model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
     scheduled_times = recommend_task_start_times(
         tasks,
-        existing_tasks=[],  # No existing tasks for simplicity
+        existing_tasks=[], 
         work_end_time=work_end_time,
         sleep_time=sleep_time,
         model=model

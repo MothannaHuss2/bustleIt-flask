@@ -10,7 +10,7 @@ app = Flask(__name__)
 # Define the home route
 @app.route('/')
 def home():
-    id = ''
+    id = '00b4fb64-5b6e-4fe4-905b-b2ea7bfc632f'
     user = api.getUserById(id)
     print(user)
     sims = AI.recommend_weekly_tasks(user)

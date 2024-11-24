@@ -3,7 +3,8 @@ import os
 import requests
 import json
 from logger import get_logger
-from customTypes import ClusteredProfile, BatchedTasks, Schedule
+from customTypes import ClusteredProfile, BatchedTasks, Schedule, DailyTask
+from datetime import datetime
 load_dotenv()
 logger = get_logger('External API')
 
@@ -73,8 +74,16 @@ def getAllTasks() -> list[BatchedTasks]:
         }
         response = requests.get(url, headers=header)
         tasks = response.json()
-        casted = [BatchedTasks(user_id=task['user_id'], all_tasks=task['all_tasks']) for task in tasks]
-        return casted
+        casted_tasks = []
+        for task in tasks:
+            casted= BatchedTasks(user_id=task['user_id'], all_tasks=task['all_tasks'])
+            for t in casted.all_tasks:
+                t.start_time = datetime.strptime(t.start_time, "%Y-%m-%d %H:%M:%S UTC").strftime("%H:%M")
+                t.end_time = datetime.strptime(t.end_time, "%Y-%m-%d %H:%M:%S UTC").strftime("%H:%M")
+                t.created_at = datetime.strptime(t.created_at.replace(" UTC", ""), "%Y-%m-%d %H:%M:%S.%f")
+                t.updated_at = datetime.strptime(t.updated_at.replace(" UTC", ""), "%Y-%m-%d %H:%M:%S.%f")
+            casted_tasks.append(casted)
+        return casted_tasks
     except Exception as e:
         logger.info(f'Erorr at getAllTasks: {e}')
         return []
@@ -108,6 +117,41 @@ def getUserSchedule(id: str) -> Schedule:
 
 
 
+def getAllUsersTasks():
+    try:
+        url = f'{api_url}/v1/tasks'
+        headers = {
+            "Authorization": f"Bearer {token}"
+        }
+        response = requests.get(url, headers=headers)
+        tasks = response.json()
+        returnUs = []
+        for task in tasks:
+            all_tasks = task['all_tasks']
+            # daily_tasks = []
+            for t in all_tasks:
+                t['start_time'] = datetime.strptime(t['start_time'], "%Y-%m-%d %H:%M:%S UTC").strftime("%H:%M").__str__()
+                t['end_time'] = datetime.strptime(t['end_time'], "%Y-%m-%d %H:%M:%S UTC").strftime("%H:%M").__str__()
+                t['created_at'] = datetime.strptime(t['created_at'].replace(" UTC", ""), "%Y-%m-%d %H:%M:%S.%f").__str__()
+                t['updated_at'] = datetime.strptime(t['updated_at'].replace(" UTC", ""), "%Y-%m-%d %H:%M:%S.%f").__str__()
+                returnUs.append(DailyTask(
+                    task_id=t['task_id'],
+                    name=t['name'],
+                    category=t['category'],
+                    start_time=t['start_time'],
+                    end_time=t['end_time'],
+                    completed=t['completed'],
+                    created_at=t['created_at'],
+                    updated_at=t['updated_at']
+                    
+                ))
+            # all_tasks.append(BatchedTasks(user_id=task['user_id'], all_tasks=daily_tasks))
+        logger.info(f'All tasks fetched: {len(returnUs)}')
+        return all_tasks
+    except Exception as e:
+        logger.info(f'Error at getAllUsersTasks: {e}')
+        return []
+
 def getBatchedTasks(ids: list[str]) -> list[BatchedTasks]:
     try:
         url = f'{api_url}/v1/tasks/batch'
@@ -126,14 +170,20 @@ def getBatchedTasks(ids: list[str]) -> list[BatchedTasks]:
         for task in tasks:
             # logger.info(f'User Schedule {task["user_id"]} has {len(task["all_tasks"])} tasks')
             totalTasks += len(task["all_tasks"])
+            casted_task = BatchedTasks(user_id=task['user_id'], all_tasks=task['all_tasks'])
+            for t in casted_task.all_tasks:
+                t.start_time = datetime.strptime(t.start_time, "%Y-%m-%d %H:%M:%S UTC").strftime("%H:%M")
+                t.end_time = datetime.strptime(t.end_time, "%Y-%m-%d %H:%M:%S UTC").strftime("%H:%M")
+                t.created_at = datetime.strptime(t.created_at.replace(" UTC", ""), "%Y-%m-%d %H:%M:%S.%f")
+                t.updated_at = datetime.strptime(t.updated_at.replace(" UTC", ""), "%Y-%m-%d %H:%M:%S.%f")
             casted.append(
-                BatchedTasks(user_id=task['user_id'], all_tasks=task['all_tasks'])
+                casted_task
             )
         logger.info(f'Total tasks fetched: {totalTasks}')
         
         return casted
     except Exception as e:
-        logger.info(f"Error in getBatchedTasks  + e.__str__()")
+        logger.info(f"Error in getBatchedTasks " + str(e))
         return []
 
 def getRangedSchedule(id:str, startDate:str, range: int) -> Schedule:

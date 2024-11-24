@@ -66,7 +66,7 @@ def recommend():
             work_end_time=recommendation_input['work_end_time'],
             sleep_time=recommendation_input['sleep_time']
         )
-        recommended_tasks = AI.recommend(casted)
+        recommended_tasks = AI.recommend_daily(casted)
         return jsonify(recommended_tasks), 200
     except KeyError as e:
         return jsonify({"error": str(e)}), 400

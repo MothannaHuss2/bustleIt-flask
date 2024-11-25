@@ -117,7 +117,7 @@ def getUserSchedule(id: str) -> Schedule:
 
 
 
-def getAllUsersTasks():
+def getAllUsersTasks() -> list[DailyTask]:
     try:
         url = f'{api_url}/v1/tasks'
         headers = {
@@ -128,13 +128,13 @@ def getAllUsersTasks():
         returnUs = []
         for task in tasks:
             all_tasks = task['all_tasks']
-            # daily_tasks = []
             for t in all_tasks:
                 t['start_time'] = datetime.strptime(t['start_time'], "%Y-%m-%d %H:%M:%S UTC").strftime("%H:%M").__str__()
                 t['end_time'] = datetime.strptime(t['end_time'], "%Y-%m-%d %H:%M:%S UTC").strftime("%H:%M").__str__()
-                t['created_at'] = datetime.strptime(t['created_at'].replace(" UTC", ""), "%Y-%m-%d %H:%M:%S.%f").__str__()
-                t['updated_at'] = datetime.strptime(t['updated_at'].replace(" UTC", ""), "%Y-%m-%d %H:%M:%S.%f").__str__()
-                returnUs.append(DailyTask(
+                t['created_at'] = t['created_at'].strip().replace(" UTC", "").replace(" ", "T").split(".")[0]
+                t['updated_at'] = t['updated_at'].strip().replace(" UTC", "").replace(" ", "T").split(".")[0]
+                returnUs.append(
+                    DailyTask(
                     task_id=t['task_id'],
                     name=t['name'],
                     category=t['category'],
@@ -143,11 +143,9 @@ def getAllUsersTasks():
                     completed=t['completed'],
                     created_at=t['created_at'],
                     updated_at=t['updated_at']
-                    
                 ))
-            # all_tasks.append(BatchedTasks(user_id=task['user_id'], all_tasks=daily_tasks))
-        logger.info(f'All tasks fetched: {len(returnUs)}')
-        return all_tasks
+        logger.info(f'All tasks fetched: {returnUs[0]}')
+        return returnUs
     except Exception as e:
         logger.info(f'Error at getAllUsersTasks: {e}')
         return []
@@ -174,8 +172,11 @@ def getBatchedTasks(ids: list[str]) -> list[BatchedTasks]:
             for t in casted_task.all_tasks:
                 t.start_time = datetime.strptime(t.start_time, "%Y-%m-%d %H:%M:%S UTC").strftime("%H:%M")
                 t.end_time = datetime.strptime(t.end_time, "%Y-%m-%d %H:%M:%S UTC").strftime("%H:%M")
-                t.created_at = datetime.strptime(t.created_at.replace(" UTC", ""), "%Y-%m-%d %H:%M:%S.%f")
-                t.updated_at = datetime.strptime(t.updated_at.replace(" UTC", ""), "%Y-%m-%d %H:%M:%S.%f")
+                t.created_at = t.created_at.strip().replace(" UTC", "").replace(" ", "T").split(".")[0]
+                t.updated_at = t.updated_at.strip().replace(" UTC", "").replace(" ", "T").split(".")[0]
+                if today:
+                    if t.created_at.split("T")[0] != datetime.now().strftime("%Y-%m-%d"):
+                        continue
             casted.append(
                 casted_task
             )

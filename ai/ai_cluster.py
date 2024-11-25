@@ -11,9 +11,11 @@ from typing import List, Dict, Any
 import utils.api as api
 import random
 from customTypes import ClusteredProfile, BatchedTasks, Schedule, DailySchedule, DailyTask, RawProfile
-from sentence_transformers import SentenceTransformer
+from sentence_transformers import SentenceTransformer, util
 from logger import get_logger
 import time
+import heapq
+from utils.llm import chain
 
 logger = get_logger('AI')
 model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
@@ -157,7 +159,7 @@ def getScores(user: ClusteredProfile) -> list[float]:
                     
         ]
     return new_user
-def getTasks(id,range, startDate,prefs, dict=True):
+def getTasks(id,range, startDate,prefs, dict=True, today=False):
     
    try:
         tasks = api.getRangedSchedule(id, startDate, range)
@@ -169,7 +171,10 @@ def getTasks(id,range, startDate,prefs, dict=True):
             schedule.tasks for schedule in schedules
         ]
         tasks_flat = [
-                {
+                
+        ]
+        if dict:
+            tasks_flat = [{
                 'id':task.task_id,
                 'name': task.name,
                 'category': task.category,
@@ -183,7 +188,21 @@ def getTasks(id,range, startDate,prefs, dict=True):
             for sublist in 
             tasks for 
             task in sublist
-            if task.category in prefs
+            if task.category in prefs and (today and getDateDay(task.created_at) == getTodayName())
+            ]
+        else:
+            tasks_flat = [
+                DailyTask(
+                    task_id=task.task_id,
+                    name=task.name,
+                    category=task.category,
+                    start_time=datetime.datetime.strptime(task.start_time, "%Y-%m-%d %H:%M:%S UTC").strftime("%H:%M").__str__(),
+                    end_time=datetime.datetime.strptime(task.end_time, "%Y-%m-%d %H:%M:%S UTC").strftime("%H:%M").__str__(),
+                    created_at=task.created_at.strip().replace(" UTC", "").replace(" ", "T").split(".")[0],
+                    updated_at=task.updated_at.strip().replace(" UTC", "").replace(" ", "T").split(".")[0],
+                    completed=task.completed) 
+                for sublist in tasks for task in sublist
+                if task.category in prefs and (today and getDateDay(task.created_at) == getTodayName())
             ]
 
         
@@ -378,15 +397,15 @@ def get_name_similarity(task1: Dict[str, Any], task2: Dict[str, Any], model) -> 
 
     return similarity
 
-def calculate_category_frequency(existing_tasks: List[Dict[str, Any]], work_end_time: int, sleep_time: int) -> Dict[str, Dict[int, int]]:
-
+def calculate_category_frequency(existing_tasks: List[Dict[str, Any]] | List[DailyTask], work_end_time: int, sleep_time: int) -> Dict[str, Dict[int, int]]:
     category_frequency = defaultdict(lambda: defaultdict(int))
-
     for task in existing_tasks:
+        dataType = task.__class__.__name__
         try:
-            start_hour = int(task['startTime'].split(":")[0])
+            start_hour = int(task['startTime'].split(":")[0]) if dataType == 'dict' else int(task.start_time.split(":")[0])
             if work_end_time <= start_hour < sleep_time:
-                category_frequency[task['category']][start_hour] += 1
+                category = task['category'] if dataType == 'dict' else task.category
+                category_frequency[category][start_hour] += 1
         except Exception as e:
             print("Error:", e)
 
@@ -543,10 +562,14 @@ def get_recommended_tasks(
 
 
 
-def getAllUsersTasks() -> list[DailyTask]:
+def getAllUsersTasks(prefs= None) -> list[DailyTask]:
     try:
+
         tasks = api.getAllUsersTasks()
-        return tasks
+        logger.info(f"\nAll user tasks: {tasks[0]}\n")
+        return tasks if not prefs else [
+            task for task in tasks if task.category in prefs
+        ]
     except Exception as e:
         print(f'Error at getAllUsersTasks: {e}')
         return []
@@ -580,19 +603,15 @@ def findKSimilarUsers(people: List[ClusteredProfile], user: ClusteredProfile, k:
         list: List of k most similar users.
     """
     try:
-        score = getScores(user)
-        people_in_cluster = people
-        similar_ids = [user.user_id for user in people_in_cluster]
+        user_score = np.reshape(getScores(user), (1, -1))
         
-        scores = [
-            getScores(user) for user in people_in_cluster
-        ]
+        user_scores = np.array([getScores(u) for u in people])
         
-        reshaped = np.reshape(score, (1, -1))
-        similarity_scores = cosine_similarity(reshaped, scores)
-        top_similar_indices = similarity_scores.argsort()[0][-5:]
-        ids = [similar_ids[i] for i in top_similar_indices]
-        return [user for user in people if user.user_id in ids]
+        similarity_scores = cosine_similarity(user_score, user_scores)[0]
+        
+        top_k_indices = heapq.nlargest(k, range(len(similarity_scores)), similarity_scores.take)
+        
+        return [people[i] for i in top_k_indices]
     except Exception as e:
         print(f"An error occurred in findKSimilarUsers : {e}")
         return []
@@ -739,7 +758,46 @@ def recommend_weekly_tasks(
     except Exception as e:
         print(f"Error in recommend_weekly_tasks: {e}")
         return {}
+def getBatchedToday(ids):
+    tasks = api.getBatchedTasks(ids)
+    today = getTodayName()
+    filtered = [
+        task for task in tasks if getDateDay(task.created_at) == today
+    ]
+    return filtered
+def semanticSort(tasks: List[DailyTask]):
+    """
+    Sorts tasks so that semantically similar tasks are adjacent in the array.
+    
+    Args:
+        tasks (list of dict): A list of tasks, where each task is represented as a dictionary with at least a 'name' field.
+        
+    Returns:
+        list of dict: A sorted list of tasks.
+    """
+    model = SentenceTransformer('all-MiniLM-L6-v2')  
 
+
+    task_names = [task.name for task in tasks]
+
+
+    embeddings = model.encode(task_names, convert_to_tensor=True)
+
+
+    similarity_matrix = util.pytorch_cos_sim(embeddings, embeddings)
+
+
+    avg_similarity = similarity_matrix.mean(dim=1).tolist()
+    
+
+    tasks_with_scores = [(task, score) for task, score in zip(tasks, avg_similarity)]
+    
+
+    sorted_tasks = [task for task, _ in sorted(tasks_with_scores, key=lambda x: x[1], reverse=True)]
+    
+    return sorted_tasks
+    
+    
 def recommend_daily(
 user: ClusteredProfile, 
 range=30,
@@ -748,49 +806,43 @@ sleep_time=24,
 work_start_time=8, 
 with_time=True, 
 day=None):
-    """_summary_
-
-    Args:
-        user (api.ClusteredProfile): _description_
-        range (_type_): _description_
-        work_end_time (int, optional): _description_. Defaults to 17.
-        sleep_time (int, optional): _description_. Defaults to 24.
-        work_start_time (int, optional): _description_. Defaults to 8.
-
-    Returns:
-        _type_: _description_
-    """
     try:
-        scores = np.array(user.scores)  
         preferences = np.array(user.preferences) 
         user_id = user.user_id
         cluster = user.cluster
-        new_user = np.array(getScores(user)) 
         
         people_in_cluster = api.getUsersByCluster(cluster)
-        similar_ids = np.array([user.user_id for user in people_in_cluster]) 
+                
+        ids = [user.user_id for user in findKSimilarUsers(people_in_cluster, user, 5)]
         
-        scores = np.array([getScores(user) for user in people_in_cluster])  
+        user_tasks_og = getTasks(user_id, range, datetime.datetime.now().strftime('%Y-%m-%d'), preferences, dict=False, today=True)
         
-        reshaped = np.reshape(new_user, (1, -1))  
-        similarity_scores = cosine_similarity(reshaped, scores)  
-        top_similar_indices = np.argsort(similarity_scores[0])[-5:]  
-        ids = list(similar_ids[top_similar_indices])  
-        ids.extend(['542172eb-c417-46c0-b9b1-78d1b7630bf5', user_id])  
+        others = getBatchedToday(ids)
         
-        tasks = [
-            getTasks(id, range, datetime.datetime.now().strftime('%Y-%m-%d'), preferences) for id in ids
-        ]
-        user_tasks_og = tasks[-1]
+        logger.info(f"Others: {len(others)}")
+        logger.info(f'User tasks: {len(user_tasks_og)}')
         
-        others = api.getBatchedTasks(ids)
-        user_tasks = [task for task in others if task.user_id == user_id]
-        
+        if len(others) == 0 and len(user_tasks_og) == 0:
+            allTasks = getAllUsersTasks(user.preferences)
+            tasks = chain([task.name for task in allTasks], work_end_time, sleep_time).tasks
+            
+            logger.info(f"Sample: {data}")
+            # sortedTasks = semanticSort(sample)
+            # logger.info(f"Sample: {sortedTasks}")
+            schedule = []
+            for task in tasks:
+                schedule.append({
+                    'name': task.name,
+                    'startTime': f"{task.start_time:02}:00",
+                    'endTime': f"{task.end_time:02}:00"
+                })
+            # return schedule
+            return schedule
+            
         all_tasks = [
-            np.array(task.all_tasks) for task in others  
+            task.all_tasks for task in others  
         ]
-        flat = np.array([task for sublist in all_tasks for task in sublist])  # Flattened tasks
-        
+        flat = [task for sublist in all_tasks for task in sublist]
         engagement_rate = 0.6
         similar_users_engagement_rate = 1 - engagement_rate
         
@@ -798,10 +850,12 @@ day=None):
         tasks_from_user_history = int(numberOfTasks * engagement_rate)
         tasks_from_others = int(numberOfTasks * similar_users_engagement_rate)
         
-        sample_from_user_history = np.array(random.sample(user_tasks[0].all_tasks, tasks_from_user_history))
-        sample_from_others = np.array(random.sample(flat.tolist(), tasks_from_others))  
+        sample_from_user_history = random.sample(user_tasks_og, tasks_from_user_history)
+        sample_from_others = random.sample(flat, tasks_from_others)
+          
         
         today = getTodayName() if day is None else day
+        concatenated = sample_from_user_history + sample_from_others
         all_tasks_combined = [
             {
                 'name': task.name,
@@ -810,9 +864,10 @@ day=None):
                 'endTime': task.end_time,
                 'completed': task.completed,
             }
-            for task in np.concatenate((sample_from_user_history, sample_from_others))
+            for task in concatenated
             if getDateDay(task.created_at) == today
         ]
+        
         
         x = recommend_task_start_times(
             all_tasks_combined,
@@ -820,10 +875,27 @@ day=None):
             work_end_time,
             sleep_time,
             model=model
-        )
-        return x if with_time else all_tasks_combined
+        ).items()
+        scheduledTasks = []
+        for task in x:
+            startTime = task[1]
+            name = task[0]
+            endTime = f"{(int(startTime[:2]) + 1):02}:00"
+            scheduledTasks.append({
+                'name': name,
+                'startTime': startTime,
+                'endTime': endTime
+            })
+            
+        schedule = {
+            "day": today,
+            "date": datetime.datetime.now().strftime("%Y-%m-%d"),
+            "tasks": scheduledTasks
+        }
+        return schedule if with_time else all_tasks_combined
     except Exception as e:
-        print(f"An error occurred: {e}")
+        logger.info(f"An error occurred in recommend daily: {e.__cause__}")
+        print(f"An error occurred in recommend daily: {e}")
         return {}
 
 def schedule_tasks_for_day(

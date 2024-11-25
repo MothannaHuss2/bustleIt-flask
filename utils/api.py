@@ -174,9 +174,6 @@ def getBatchedTasks(ids: list[str]) -> list[BatchedTasks]:
                 t.end_time = datetime.strptime(t.end_time, "%Y-%m-%d %H:%M:%S UTC").strftime("%H:%M")
                 t.created_at = t.created_at.strip().replace(" UTC", "").replace(" ", "T").split(".")[0]
                 t.updated_at = t.updated_at.strip().replace(" UTC", "").replace(" ", "T").split(".")[0]
-                if today:
-                    if t.created_at.split("T")[0] != datetime.now().strftime("%Y-%m-%d"):
-                        continue
             casted.append(
                 casted_task
             )

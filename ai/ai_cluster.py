@@ -819,16 +819,9 @@ day=None):
         
         others = getBatchedToday(ids)
         
-        logger.info(f"Others: {len(others)}")
-        logger.info(f'User tasks: {len(user_tasks_og)}')
-        
         if len(others) == 0 and len(user_tasks_og) == 0:
             allTasks = getAllUsersTasks(user.preferences)
             tasks = chain([task.name for task in allTasks], work_end_time, sleep_time).tasks
-            
-            logger.info(f"Sample: {data}")
-            # sortedTasks = semanticSort(sample)
-            # logger.info(f"Sample: {sortedTasks}")
             schedule = []
             for task in tasks:
                 schedule.append({
@@ -836,7 +829,6 @@ day=None):
                     'startTime': f"{task.start_time:02}:00",
                     'endTime': f"{task.end_time:02}:00"
                 })
-            # return schedule
             return schedule
             
         all_tasks = [

@@ -29,6 +29,7 @@ def chain(tasks, work_end_time, sleep_time) -> Recommendation:
         "Example of a returned task: {name: 'Task name', start_time: '12:00', end_time: '13:00'}"
         "Important:"
         "When recommending a task that is irrelevant to its predecessor, make sure you include one hour time gap between them"
+        "IMPORTANT: If any task involves professional work, ignore it and do not recommend it"
         ""
         llm = chat.with_structured_output(Recommendation)
         messages = [

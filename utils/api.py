@@ -125,26 +125,25 @@ def getAllUsersTasks() -> list[DailyTask]:
         }
         response = requests.get(url, headers=headers)
         tasks = response.json()
+        excluded = [ 'Finance', 'Career','Work','Personal Development']
         returnUs = []
         for task in tasks:
             all_tasks = task['all_tasks']
             for t in all_tasks:
-                t['start_time'] = datetime.strptime(t['start_time'], "%Y-%m-%d %H:%M:%S UTC").strftime("%H:%M").__str__()
-                t['end_time'] = datetime.strptime(t['end_time'], "%Y-%m-%d %H:%M:%S UTC").strftime("%H:%M").__str__()
-                t['created_at'] = t['created_at'].strip().replace(" UTC", "").replace(" ", "T").split(".")[0]
-                t['updated_at'] = t['updated_at'].strip().replace(" UTC", "").replace(" ", "T").split(".")[0]
-                returnUs.append(
-                    DailyTask(
-                    task_id=t['task_id'],
-                    name=t['name'],
-                    category=t['category'],
-                    start_time=t['start_time'],
-                    end_time=t['end_time'],
-                    completed=t['completed'],
-                    created_at=t['created_at'],
-                    updated_at=t['updated_at']
-                ))
-        logger.info(f'All tasks fetched: {returnUs[0]}')
+                if not t['category'] in excluded:
+                    t['start_time'] = datetime.strptime(t['start_time'], "%Y-%m-%d %H:%M:%S UTC").strftime("%H:%M").__str__()
+                    t['end_time'] = datetime.strptime(t['end_time'], "%Y-%m-%d %H:%M:%S UTC").strftime("%H:%M").__str__()
+                    returnUs.append(
+                        DailyTask(
+                        task_id=t['task_id'],
+                        name=t['name'],
+                        category=t['category'],
+                        start_time=t['start_time'],
+                        end_time=t['end_time'],
+                        completed=t['completed'],
+                        created_at=t['created_at'].strip().replace(" UTC", "").replace(" ", "T").split(".")[0],
+                        updated_at=t['updated_at'].strip().replace(" UTC", "").replace(" ", "T").split(".")[0]
+                    ))
         return returnUs
     except Exception as e:
         logger.info(f'Error at getAllUsersTasks: {e}')
@@ -177,7 +176,6 @@ def getBatchedTasks(ids: list[str]) -> list[BatchedTasks]:
             casted.append(
                 casted_task
             )
-        logger.info(f'Total tasks fetched: {totalTasks}')
         
         return casted
     except Exception as e:

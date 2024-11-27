@@ -8,14 +8,14 @@ import re
 app = Flask(__name__)
 
 # Define the home route
-@app.route('/')
-def home():
-    id = '00b4fb64-5b6e-4fe4-905b-b2ea7bfc632f'
-    user = api.getUserById(id)
+# @app.route('/')
+# def home():
+#     id = '00b4fb64-5b6e-4fe4-905b-b2ea7bfc632f'
+#     user = api.getUserById(id)
 
-    sims = AI.recommend_weekly_tasks(user)
+#     sims = AI.recommend_weekly_tasks(user)
 
-    return sims
+#     return sims
 
 @app.post("/cluster")
 def cluster():

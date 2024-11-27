@@ -62,7 +62,7 @@ def recommend_weekly():
     try:
         recommendation_input = request.json
         casted = WeeklyRecommendationInput(user=recommendation_input['user'], work_end_time=recommendation_input['work_end_time'], work_start_time=recommendation_input['work_start_time'], sleep_time=recommendation_input['sleep_time'])
-        recommended_tasks = AI.recommend_weekly_tasks(casted)
+        recommended_tasks = AI.recommend_weekly_tasks(user=casted.user, work_end_time=casted.work_end_time, work_start_time=casted.work_start_time, sleep_time=casted.sleep_time)
         return jsonify(recommended_tasks), 200
     except KeyError as e:
         return jsonify({"Error: Missing value": str(e)}), 400

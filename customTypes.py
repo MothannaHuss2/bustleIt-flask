@@ -19,6 +19,7 @@ class DailyTaskInput(BaseModel):
     cluster: int
     work_end_time: int
     sleep_time: int
+    work_start_time: int
 class DailyTask(BaseModel):
     task_id: str
     name: str
@@ -30,10 +31,14 @@ class DailyTask(BaseModel):
     updated_at: str
     
 class WeeklyRecommendationInput(BaseModel):
-   user:ClusteredProfile
-   work_end_time: int
-   work_start_time: int
-   sleep_time: int
+    user_id: str
+    scores: Dict[str, float]
+    preferences: List[str]
+    cluster: int
+    work_end_time: int
+    sleep_time: int
+    work_start_time: int
+
     
 class DailySchedule(BaseModel):
     total_tasks: int

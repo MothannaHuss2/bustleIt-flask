@@ -15,11 +15,10 @@ from sentence_transformers import SentenceTransformer, util
 from logger import get_logger
 import time
 import heapq
+from tasks import getTasksJson
 from utils.llm import chain
+from printer import Printer
 
-logger = get_logger('AI')
-model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
-    
 class AiClusteredProfile(BaseModel):
     id: str
     introverted: float
@@ -40,7 +39,17 @@ class data(BaseModel):
     scores: Dict[str, float]
     preferences: List[str]
     
-# # model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
+logger = get_logger('AI')
+model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
+
+def rankSimilarUsers(user:ClusteredProfile):
+    try:
+        people = api.getUsersByCluster(user.cluster)
+        similar_users = findKSimilarUsers(people, user, len(people))
+        return [user.user_id for user in similar_users]
+    except Exception as e:
+        logger.info(f"An error occurred in rankSimilarUsers: {e}")
+        return []
 def cluster_single_record(profile: RawProfile) -> int:
     """
     Clusters a single record based on personality traits.
@@ -191,8 +200,8 @@ def getTasks(id,range, startDate,prefs, dict=True, today=False):
                 'startTime': task.start_time,
                 'endTime': task.end_time,
                 'completed': task.completed,
-                "created_at": datetime.datetime.strptime(task.created_at.replace(" UTC", ""), "%Y-%m-%d %H:%M:%S.%f"),
-                "updated_at": datetime.datetime.strptime(task.updated_at.replace(" UTC", ""), "%Y-%m-%d %H:%M:%S.%f")
+                "created_at": datetime.datetime.strptime(task.created_at.replace(" UTC", ""), "%Y-%m-%d %H:%M:%S"),
+                "updated_at": datetime.datetime.strptime(task.updated_at.replace(" UTC", ""), "%Y-%m-%d %H:%M:%S")
                 
             } 
             for task in flat
@@ -279,7 +288,8 @@ work_start_time=8,
 with_time=True, 
 day=None,
 givenTasks = None,
-userGivens=None
+userGivens=None,
+numberOfTasks=5,
 ):
     """_summary_
 
@@ -329,18 +339,19 @@ userGivens=None
         ] if givenTasks is None else givenTasks
         flat = np.array([task for sublist in all_tasks for task in sublist]) if givenTasks is None else  np.array(givenTasks) # Flattened tasks
         
-        engagement_rate = 0.6
+        engagement_rate = .6
         similar_users_engagement_rate = 1 - engagement_rate
-        
-        numberOfTasks = 5
         tasks_from_user_history = int(numberOfTasks * engagement_rate)
         tasks_from_others = int(numberOfTasks * similar_users_engagement_rate)
+        user_sample = []
+        if len(user_tasks) > 0:        
+            user_sample = user_tasks[0].all_tasks if userGivens is None else userGivens
+        else:
+            tasks_from_others = numberOfTasks
         
-        user_sample = user_tasks[0].all_tasks if userGivens is None else userGivens
-        
-        sample_from_user_history = random.sample(user_sample, tasks_from_user_history)
+        sample_from_user_history = random.sample(user_sample, min(tasks_from_user_history, len(user_sample))) if len(user_sample) > 0 else []
 
-        sample_from_others = random.sample(flat.tolist(), tasks_from_others)
+        sample_from_others = random.sample(flat.tolist(), min(tasks_from_others, len(flat)))
 
         
         today = getTodayName() if day is None else day
@@ -592,9 +603,9 @@ def getAllTasks(id):
         else:
             id = id
         tasks = api.getBatchedTasks(id)
-        if len(id) == 1:
+        if len(id) == 1 and len(tasks) > 0:
             return tasks[0].all_tasks
-        elif len(id) > 1:
+        elif len(id) > 1 and len(tasks) > 0:
             return [task.all_tasks for task in tasks][0]
         else:
             return []
@@ -643,7 +654,12 @@ def filter(tasks: list[DailyTask], day) -> List[DailyTask]:
 def getTime(date:str):
     parsed = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
     return parsed.hour
-
+def calcAverageCompletion(tasks: List[DailyTask]) -> int:
+    if not tasks:  # Check for an empty list
+        return 0
+    completed = sum(1 for task in tasks if task.completed)
+    avg = completed // len(tasks)
+    return avg if avg > 0 else 5
 def recommend_weekly_tasks(
     user: ClusteredProfile,
     work_end_time=17,
@@ -652,12 +668,10 @@ def recommend_weekly_tasks(
     portion_from_user_tasks=0.6,
     range=30
 ) -> dict:
-    start = time.time()
     weekly_schedule = OrderedDict()
     try:
             
         user_tasks = getAllTasks(user.user_id)
-        catsSet = set()
         
         today = getTodayName()
         hashPrefs = {
@@ -665,8 +679,6 @@ def recommend_weekly_tasks(
             for category in user.preferences
         }
         allUserTasks = getAllUsersTasks()
-        for task in allUserTasks:
-            catsSet.add(task.category)
 
         filteredAll = [
             task for task in allUserTasks if task.category if hashPrefs.get(task.category)
@@ -679,18 +691,20 @@ def recommend_weekly_tasks(
         userTs = getTasks(user.user_id, range, datetime.datetime.now().strftime('%Y-%m-%d'), user.preferences)
         similar_users_tasks = [task for task in similar_users_tasks if hashPrefs.get(task.category)]
         combined = similar_users_tasks + user_tasks
-        # logger.info(f'Today is {today}')
-        
         
         all_tasks = [
             {
                 'name': task.name,
                 'category': task.category,
+                'completed': task.completed,
             }
             for task in combined
         ]
         
-        user_tasks_df = pd.DataFrame(all_tasks, columns=['name', 'category'])
+        user_tasks_df = pd.DataFrame(all_tasks, columns=['name', 'category','completed'])
+        
+        avg_completion = int(user_tasks_df['completed'].mean())
+        
         
 
         today = datetime.datetime.today()
@@ -703,8 +717,6 @@ def recommend_weekly_tasks(
         filtered = [
             filter(combined, day) for day in days_order
         ]
-        # logger.info(f'User tasks: {len(user_tasks_df)}')
-
         dic = {
             day: tasks for tasks, day in filtered if len(tasks) > 0
         }
@@ -713,8 +725,8 @@ def recommend_weekly_tasks(
         for i, day_name in enumerate(days_order):
             current_date = next_saturday + datetime.timedelta(days=i)
             if dic.get(day_name):
-                # logger.info(f"\nTasks: {dic[day_name][0]}\n")
-                logger.info(f"Calling recommend for {day_name}")
+                average = calcAverageCompletion(dic[day_name])
+                logger.info(f'Average for {day_name} is {average}')
                 tasks_to_recommend = recommend(
                     user,
                     range,
@@ -724,8 +736,11 @@ def recommend_weekly_tasks(
                     with_time=False,
                     day=day_name,
                     givenTasks=dic[day_name],
-                    userGivens=userTs
+                    userGivens=userTs,
+                    numberOfTasks=average
                 )
+                printer = Printer(tasks_to_recommend)
+                printer.print()
                 logger.info(f"Done calling recommend for {day_name}")
                 try:
                     recommended_tasks = get_recommended_tasks(
@@ -759,8 +774,11 @@ def recommend_weekly_tasks(
                                 "endTime": f"{work_end_time:02}:00"}]
                     }
             else:
-                sample = random.sample(filteredAll, 5)
-                recommenddation = chain([task.name for task in sample], work_end_time, sleep_time)
+                numberOfTasks = avg_completion
+                if numberOfTasks == 0:
+                    numberOfTasks = sleep_time - work_end_time - 1
+                sample = random.sample(getTasksJson(), numberOfTasks)
+                recommenddation = chain([task['name'] for task in sample], work_end_time, sleep_time)
                 dic = {
                     "day": day_name,
                     "date": current_date.strftime("%Y-%m-%d"),
@@ -776,9 +794,6 @@ def recommend_weekly_tasks(
                     'endTime': f"{work_end_time:02}:00"
                 })
                 weekly_schedule[day_name] = dic
-                
-        end = time.time()
-        logger.info(f'Execution time for recommend_weekly_tasks: {end - start} seconds')
         return dict(weekly_schedule)
 
     except Exception as e:
@@ -797,7 +812,7 @@ def getBatchedToday(ids):
         task for task in flat if getDateDay(task.created_at) == today
     ]
     return filtered
-def semanticSort(tasks: List[DailyTask]):
+def semanticSort(tasks: List[DailyTask] | List[Dict[str, Any]]) -> List[Dict[str, Any]] | List[DailyTask]:
     """
     Sorts tasks so that semantically similar tasks are adjacent in the array.
     
@@ -807,10 +822,13 @@ def semanticSort(tasks: List[DailyTask]):
     Returns:
         list of dict: A sorted list of tasks.
     """
+    if len(tasks) == 0:
+        logger.info("No tasks found")
+        return []
     model = SentenceTransformer('all-MiniLM-L6-v2')  
 
 
-    task_names = [task.name for task in tasks]
+    task_names = [task.name for task in tasks] if tasks[0].__class__ == DailyTask else [task['name'] for task in tasks]
 
 
     embeddings = model.encode(task_names, convert_to_tensor=True)
@@ -828,7 +846,6 @@ def semanticSort(tasks: List[DailyTask]):
     sorted_tasks = [task for task, _ in sorted(tasks_with_scores, key=lambda x: x[1], reverse=True)]
     
     return sorted_tasks
-    
     
 def recommend_daily(
 user: ClusteredProfile, 
@@ -848,15 +865,14 @@ day=None):
         ids = [user.user_id for user in findKSimilarUsers(people_in_cluster, user, 5)]
         
         user_tasks_og = getTasks(user_id, range, datetime.datetime.now().strftime('%Y-%m-%d'), preferences, dict=False, today=True)
-        logger.info('Done with user tasks')
         others = getBatchedToday(ids)
-        logger.info('Done with others')
 
         
         if len(others) == 0 and len(user_tasks_og) == 0:
-            allTasks = getAllUsersTasks(user.preferences)
-            sample = random.sample(allTasks, 5)
-            tasks = chain([task.name for task in sample], work_end_time, sleep_time).tasks
+            logger.info("No tasks found for today")
+            # allTasks = getAllUsersTasks(user.preferences)
+            sample = random.sample(getTasksJson(), 4)
+            tasks = semanticSort(sample)
             schedule = []
             dic = {
                 "day": getTodayName(),
@@ -869,12 +885,14 @@ day=None):
                     }
                 ]
             }
+            startTime = work_end_time + 1
             for task in tasks:
                 dic['tasks'].append({
-                    'name': task.name,
-                    'startTime': f"{task.start_time:02}:00",
-                    'endTime': f"{task.end_time:02}:00"
+                    'name': task['name'],
+                    'startTime': f"{startTime:02}:00",
+                    'endTime': f"{(startTime + 1):02}:00"
                 })
+                startTime += 1
             return dic
             
         all_tasks = [

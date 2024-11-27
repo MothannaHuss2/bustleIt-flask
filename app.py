@@ -2,7 +2,7 @@ from flask import Flask, render_template
 from flask import Flask, request, jsonify
 import utils.api as api
 import ai.ai_cluster as AI
-from customTypes import RawProfile , WeeklyRecommendationInput , DailyTaskInput
+from customTypes import RawProfile , WeeklyRecommendationInput , DailyTaskInput, ClusteredProfile
 import re
 
 app = Flask(__name__)
@@ -44,9 +44,11 @@ def recommend():
             preferences=recommendation_input['preferences'],
             cluster=recommendation_input['cluster'],
             work_end_time=recommendation_input['work_end_time'],
-            sleep_time=recommendation_input['sleep_time']
+            sleep_time=recommendation_input['sleep_time'],
+            work_start_time=recommendation_input['work_start_time']
         )
-        recommended_tasks = AI.recommend_daily(casted)
+        user = ClusteredProfile(user_id=casted.user_id, scores=casted.scores, preferences=casted.preferences, cluster=casted.cluster)
+        recommended_tasks = AI.recommend_daily(user=user, work_end_time=casted.work_end_time, sleep_time=casted.sleep_time, work_start_time=casted.work_start_time)
         return jsonify(recommended_tasks), 200
     except KeyError as e:
         return jsonify({"error": str(e)}), 400
@@ -55,14 +57,21 @@ def recommend():
         variable = re.search(r"\n(\w+)\n", stringMsg)
         match = re.search(r"type=(.*?),", stringMsg)
         expected_type = match.group(1)
-        return jsonify({"Value Error": f'{variable.group(1)} should have {expected_type} value'}), 400
+        return jsonify({"Value Error": f'{variable.group(1)} have {expected_type} value'}), 400
 
 @app.post('/recommend_weekly')
 def recommend_weekly():
     try:
         recommendation_input = request.json
-        casted = WeeklyRecommendationInput(user=recommendation_input['user'], work_end_time=recommendation_input['work_end_time'], work_start_time=recommendation_input['work_start_time'], sleep_time=recommendation_input['sleep_time'])
-        recommended_tasks = AI.recommend_weekly_tasks(user=casted.user, work_end_time=casted.work_end_time, work_start_time=casted.work_start_time, sleep_time=casted.sleep_time)
+        casted = WeeklyRecommendationInput(user_id=recommendation_input['user_id'], 
+                                            scores=recommendation_input['scores'],
+                                            preferences=recommendation_input['preferences'],
+                                            cluster=recommendation_input['cluster'],
+                                           work_end_time=recommendation_input['work_end_time'], 
+                                           work_start_time=recommendation_input['work_start_time'], 
+                                           sleep_time=recommendation_input['sleep_time'])
+        user = ClusteredProfile(user_id=casted.user_id, scores=casted.scores, preferences=casted.preferences, cluster=casted.cluster)
+        recommended_tasks = AI.recommend_weekly_tasks(user=user, work_end_time=casted.work_end_time, work_start_time=casted.work_start_time, sleep_time=casted.sleep_time)
         return jsonify(recommended_tasks), 200
     except KeyError as e:
         return jsonify({"Error: Missing value": str(e)}), 400
@@ -72,7 +81,22 @@ def recommend_weekly():
         match = re.search(r"type=(.*?),", stringMsg)
         expected_type = match.group(1)
         return jsonify({"Value Error": f'{variable.group(1)} should have {expected_type} value'}), 400
-
+    
+@app.post("/rank")
+def rank():
+    try:
+        data = request.json
+        user = ClusteredProfile(user_id=data['user_id'], scores=data['scores'], preferences=data['preferences'], cluster=data['cluster'])
+        ranked = AI.rankSimilarUsers(user)
+        return jsonify(ranked), 200
+    except KeyError as e:
+        return jsonify({"Error: Missing value": str(e)}), 400
+    except ValueError as e:
+        stringMsg = str(e)
+        variable = re.search(r"\n(\w+)\n", stringMsg)
+        match = re.search(r"type=(.*?),", stringMsg)
+        expected_type = match.group(1)
+        return jsonify({"Value Error": f'{variable.group(1)} should have {expected_type} value'}), 400
 
 
 if __name__ == '__main__':

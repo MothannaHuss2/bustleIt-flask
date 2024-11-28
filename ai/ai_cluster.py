@@ -870,8 +870,8 @@ day=None):
         
         if len(others) == 0 and len(user_tasks_og) == 0:
             logger.info("No tasks found for today")
-            # allTasks = getAllUsersTasks(user.preferences)
-            sample = random.sample(getTasksJson(), 4)
+            allTasks = getAllUsersTasks(user.preferences)
+            sample = random.sample(allTasks, 4)
             tasks = semanticSort(sample)
             schedule = []
             dic = {

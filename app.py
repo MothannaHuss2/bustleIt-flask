@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask
 from flask import Flask, request, jsonify
 import utils.api as api
 import ai.ai_cluster as AI
@@ -7,15 +7,7 @@ import re
 
 app = Flask(__name__)
 
-# Define the home route
-# @app.route('/')
-# def home():
-#     id = '00b4fb64-5b6e-4fe4-905b-b2ea7bfc632f'
-#     user = api.getUserById(id)
-
-#     sims = AI.recommend_weekly_tasks(user)
-
-#     return sims
+        
 
 @app.post("/cluster")
 def cluster():

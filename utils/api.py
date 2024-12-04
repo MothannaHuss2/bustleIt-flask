@@ -3,7 +3,7 @@ import os
 import requests
 import json
 from logger import get_logger
-from customTypes import ClusteredProfile, BatchedTasks, Schedule, DailyTask
+from customTypes import ClusteredProfile, BatchedTasks, Schedule, DailyTask,RawProfile
 from datetime import datetime
 load_dotenv()
 logger = get_logger('External API')
@@ -95,7 +95,7 @@ def getAllUsers() -> list[ClusteredProfile]:
         }
         response = requests.get(url, headers=headers)
         users = response.json()
-        casted = [ClusteredProfile(user_id=user['user_id'], scores=user['scores'], preferences=user['preferences']) for user in users]
+        casted = [RawProfile(user_id=user['user_id'], scores=user['scores'], preferences=user['preferences']) for user in users]
         return casted
     except Exception as e:
         logger.info('Error at api.getAllUsers:', e)

@@ -10,7 +10,10 @@ class RawProfile(BaseModel):
     user_id: str
     scores: Dict[str, float]
     preferences: List[str]
-    
+
+class RetrainedUsers(BaseModel):
+    cluster:int
+    users:List[str]
     
 class DailyTaskInput(BaseModel):
     user_id: str

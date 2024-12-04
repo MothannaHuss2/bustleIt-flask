@@ -10,7 +10,7 @@ from pydantic import BaseModel
 from typing import List, Dict, Any
 import utils.api as api
 import random
-from customTypes import ClusteredProfile, BatchedTasks, Schedule, DailySchedule, DailyTask, RawProfile
+from customTypes import ClusteredProfile, BatchedTasks, Schedule, DailySchedule, DailyTask, RawProfile,RetrainedUsers
 from sentence_transformers import SentenceTransformer, util
 from logger import get_logger
 import time
@@ -49,6 +49,39 @@ def rankSimilarUsers(user:ClusteredProfile):
         return [user.user_id for user in similar_users]
     except Exception as e:
         logger.info(f"An error occurred in rankSimilarUsers: {e}")
+        return []
+
+def retrainModel() -> List[RetrainedUsers]:
+    try:
+        traits = ["Extraversion", "Intuition", "Thinking", "Judging", "Assertiveness"]
+        allUsers = api.getAllUsers()
+        user_ids = [user.user_id for user in allUsers]
+        processed  = [process(user) for user in allUsers]
+        df = pd.DataFrame(processed)
+        scaler = MinMaxScaler(feature_range=(-1, 1))
+        df[traits] = scaler.fit_transform(df[traits])
+        mlb = MultiLabelBinarizer()
+        preferences_encoded = mlb.fit_transform(df["preferences"])
+        preferences_df = pd.DataFrame(preferences_encoded, columns=mlb.classes_)
+        
+        final_df = pd.concat([df[traits], preferences_df], axis=1)
+        kmeans = KMeans(n_clusters=3, random_state=42)
+        clusters = kmeans.fit_predict(final_df)
+        df['Cluster'] = clusters
+
+        user_cluster_mapping = pd.DataFrame({'UserID': user_ids, 'Cluster': clusters})
+
+        grouped_users = user_cluster_mapping.groupby('Cluster')['UserID'].apply(list)
+        retrained = []
+        for cluster, users in grouped_users.items():
+            retrained.append({
+                'cluster':cluster,
+                'users':users
+            })
+        joblib.dump(kmeans, "models/model.pkl")
+        return retrained
+    except Exception as e:
+        logger.info(f"Error retraining: {e}")
         return []
 def cluster_single_record(profile: RawProfile) -> int:
     """

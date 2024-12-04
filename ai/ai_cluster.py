@@ -78,7 +78,10 @@ def retrainModel() -> List[RetrainedUsers]:
                 'cluster':cluster,
                 'users':users
             })
-        joblib.dump(kmeans, "models/model_1.pkl")
+        models_dir = "models_retrained"
+        if not os.path.exists(models_dir):
+            os.makedirs(models_dir)
+        joblib.dump(kmeans, os.path.join(models_dir, "model_1.pkl"))
         return retrained
     except Exception as e:
         logger.info(f"Error retraining: {e}")

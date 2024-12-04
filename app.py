@@ -4,11 +4,21 @@ import utils.api as api
 import ai.ai_cluster as AI
 from customTypes import RawProfile , WeeklyRecommendationInput , DailyTaskInput, ClusteredProfile
 import re
-
+import logging
+logger = logging.getLogger()
 app = Flask(__name__)
 
         
-
+@app.cli.command("retrain_model")
+def retrain():
+    try:
+        AI.retrainModel()
+    except Exception as e:
+        logger.info('#'*10)
+        logger.info(f'Error retraining: {e}')
+        logger.info('#'*10)
+        
+        
 @app.post("/cluster")
 def cluster():
     try:

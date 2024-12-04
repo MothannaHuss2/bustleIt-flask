@@ -18,7 +18,7 @@ import heapq
 from tasks import getTasksJson
 from utils.llm import chain
 from printer import Printer
-
+import os
 class AiClusteredProfile(BaseModel):
     id: str
     introverted: float
@@ -78,7 +78,7 @@ def retrainModel() -> List[RetrainedUsers]:
                 'cluster':cluster,
                 'users':users
             })
-        joblib.dump(kmeans, "models/model_1.pkl")
+        joblib.dump(kmeans, os.path.join(os.getcwd(), "models/model_1.pkl"))
         return retrained
     except Exception as e:
         logger.info(f"Error retraining: {e}")

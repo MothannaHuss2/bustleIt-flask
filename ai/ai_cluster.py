@@ -78,7 +78,7 @@ def retrainModel() -> List[RetrainedUsers]:
                 'cluster':cluster,
                 'users':users
             })
-        joblib.dump(kmeans, "models/model_1.pkl")
+        joblib.dump(kmeans, "../models/model_1.pkl")
         return retrained
     except Exception as e:
         logger.info(f"Error retraining: {e}")

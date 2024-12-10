@@ -11,4 +11,6 @@ class Printer:
         for i in range(length):
             self.data[i]['name'] = sample[i]['name']
         
+
+        
         

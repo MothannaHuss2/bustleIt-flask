@@ -8,8 +8,8 @@ from datetime import datetime
 load_dotenv()
 logger = get_logger('External API')
 
-token = os.getenv("API_TOKEN")
-api_url = os.getenv("BASE_URI")
+token = 'b15cJ3iOc8tZRfJaoBLUg3oXXBk25Ov9kfZKc0yL'
+api_url = 'https://yz69xl3axh.execute-api.eu-central-1.amazonaws.com/Prod'
 
 
 

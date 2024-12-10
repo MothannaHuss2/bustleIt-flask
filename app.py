@@ -1,10 +1,10 @@
-from flask import Flask
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Response
 import utils.api as api
 import ai.ai_cluster as AI
 from customTypes import RawProfile , WeeklyRecommendationInput , DailyTaskInput, ClusteredProfile
 import re
 import logging
+import json
 logger = logging.getLogger()
 app = Flask(__name__)
 
@@ -17,7 +17,51 @@ def retrain():
         logger.info('#'*10)
         logger.info(f'Error retraining: {e}')
         logger.info('#'*10)
-        
+
+@app.route('/')
+def get():
+    try:
+        id = '00b4fb64-5b6e-4fe4-905b-b2ea7bfc632f'
+        obj = {
+            "user_id": id,
+            "scores": {
+                "introverted": 0.0,
+                "extraverted": 13.0,
+                "observant": 52.0,
+                "intuitive": 0.0,
+                "thinking": 8.0,
+                "feeling": 0.0,
+                "judging": 0.0,
+                "prospecting": 19.0,
+                "assertive": 0.0,
+                "turbulent": 2.0
+            },
+            "preferences": [
+                "Health",
+                "Exercise",
+                "Finance"
+            ],
+            "cluster": 1,
+            "work_end_time": 17,
+            "work_start_time": 8,
+            "sleep_time": 23
+        }
+        user = ClusteredProfile(
+            user_id=id,
+            scores=obj['scores'],
+            cluster=obj['cluster'],
+            preferences=obj['preferences']
+        )
+
+        def generate_tasks():
+            for task in AI.recommend_weekly_tasks(user):
+                yield f"{json.dumps(task)}\n"
+
+        return Response(generate_tasks(), content_type='application/json')
+    except Exception as e:
+        logger.error('Error: %s', e)
+        return jsonify({"error": "An error occurred during processing."}), 500
+
         
 @app.post("/cluster")
 def cluster():

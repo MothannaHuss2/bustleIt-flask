@@ -1,10 +1,31 @@
-2024-12-05 09:01:26,184 - AI - INFO - Flat task_id='4ec0f3b3-366d-4ac7-959a-57c5a5b5b74b' name='Work on email marketing' category='Work' start_time='14:00' end_time='15:00' completed=False created_at='2024-11-23T10:40:08' updated_at='2024-11-23T10:40:08'
-2024-12-05 09:01:26,190 - AI - INFO - No tasks found for today
-2024-12-05 09:01:31,553 - AI - INFO - An error occurred in recommend daily: 'DailyTask' object is not subscriptable
-2024-12-05 09:02:49,136 - AI - INFO - Flat task_id='4ec0f3b3-366d-4ac7-959a-57c5a5b5b74b' name='Work on email marketing' category='Work' start_time='14:00' end_time='15:00' completed=False created_at='2024-11-23T10:40:08' updated_at='2024-11-23T10:40:08'
-2024-12-05 09:02:49,138 - AI - INFO - No tasks found for today
-2024-12-05 09:03:05,652 - AI - INFO - Average for Saturday is 5
-2024-12-05 09:03:05,652 - AI - INFO - 
-Tasks: task_id='74c67b28-49dd-4840-a211-7076ae1baeef' name='Do stretching exercises' category='Exercise' start_time='16:00' end_time='18:00' completed=False created_at='2024-11-23T10:40:07' updated_at='2024-11-23T10:40:07'
+2024-12-11 02:01:01,284 - AI - INFO - 
+Tasks: task_id='74c67b28-49dd-4840-a211-7076ae1baeef' name='Do stretching exercises' category='Exercise' start_time='16:00' end_time='18:00' completed=False created_at='2024-11-23T10:40:07' updated_at='2024-12-10T19:38:42'
 
-2024-12-05 09:03:06,567 - AI - INFO - Done calling recommend for Saturday
+2024-12-11 02:01:01,295 - AI - INFO - Average for Saturday is 5
+2024-12-11 02:01:01,295 - AI - INFO - 
+Tasks: task_id='74c67b28-49dd-4840-a211-7076ae1baeef' name='Do stretching exercises' category='Exercise' start_time='16:00' end_time='18:00' completed=False created_at='2024-11-23T10:40:07' updated_at='2024-12-10T19:38:42'
+
+2024-12-11 02:01:02,275 - AI - INFO - Cat: Personal
+2024-12-11 02:01:02,275 - AI - INFO - length: 2 , 37
+2024-12-11 02:01:02,278 - AI - INFO - Cat: Exercise
+2024-12-11 02:01:02,278 - AI - INFO - length: 2 , 37
+2024-12-11 02:01:51,129 - AI - INFO - Average for Saturday is 5
+2024-12-11 02:01:51,130 - AI - INFO - 
+Tasks: task_id='74c67b28-49dd-4840-a211-7076ae1baeef' name='Do stretching exercises' category='Exercise' start_time='16:00' end_time='18:00' completed=False created_at='2024-11-23T10:40:07' updated_at='2024-12-10T19:38:42'
+
+2024-12-11 02:01:52,107 - AI - INFO - Cat: Work
+2024-12-11 02:01:52,107 - AI - INFO - length: 2 , 37
+2024-12-11 02:01:52,107 - AI - INFO - Confidence: 0.4
+2024-12-11 02:01:52,107 - AI - INFO - Cat: Work
+2024-12-11 02:01:52,107 - AI - INFO - length: 2 , 37
+2024-12-11 02:01:52,107 - AI - INFO - Confidence: 0.4
+2024-12-11 02:01:52,107 - AI - INFO - Cat: Creative
+2024-12-11 02:01:52,107 - AI - INFO - length: 2 , 37
+2024-12-11 02:01:52,107 - AI - INFO - Confidence: 0.4
+2024-12-11 02:01:52,107 - AI - INFO - Cat: Social
+2024-12-11 02:01:52,107 - AI - INFO - length: 2 , 37
+2024-12-11 02:01:52,107 - AI - INFO - Confidence: 0.4
+2024-12-11 02:01:52,107 - AI - INFO - Cat: Career
+2024-12-11 02:01:52,107 - AI - INFO - length: 2 , 37
+2024-12-11 02:01:52,107 - AI - INFO - Confidence: 0.4
+2024-12-11 02:01:52,107 - AI - INFO - Done calling recommend for Saturday

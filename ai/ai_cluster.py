@@ -14,7 +14,7 @@ from customTypes import ClusteredProfile, BatchedTasks, Schedule, DailySchedule,
 from sentence_transformers import SentenceTransformer, util
 from logger import get_logger
 import time
-import heapq
+import heapq 
 from tasks import getTasksJson
 from utils.llm import chain
 from printer import Printer
@@ -360,7 +360,6 @@ numberOfTasks=5,
             similarity_scores = cosine_similarity(reshaped, scores)  
             top_similar_indices = np.argsort(similarity_scores[0])[-5:]  
             ids = list(similar_ids[top_similar_indices])  
-            ids.extend(['542172eb-c417-46c0-b9b1-78d1b7630bf5', user_id])  
         
         # tasks = [
         #     getTasks(id, range, datetime.datetime.now().strftime('%Y-%m-%d'), preferences) for id in ids
@@ -696,6 +695,14 @@ def calcAverageCompletion(tasks: List[DailyTask]) -> int:
     completed = sum(1 for task in tasks if task.completed)
     avg = completed // len(tasks)
     return avg if avg > 0 else 5
+
+def confidenceCalculator(tasks: List[DailyTask], category:str):
+    c = [
+        task for task in tasks if (task.category == category and task.completed)
+    ]
+    completed = [task for task in tasks if task.category == category]
+    rate = len(c) / len(completed)
+    return rate if rate > 0 else .8
 def recommend_weekly_tasks(
     user: ClusteredProfile,
     work_end_time=17,
@@ -714,11 +721,11 @@ def recommend_weekly_tasks(
             category:1
             for category in user.preferences
         }
-        allUserTasks = getAllUsersTasks()
+        # allUserTasks = getAllUsersTasks()
 
-        filteredAll = [
-            task for task in allUserTasks if task.category if hashPrefs.get(task.category)
-        ]
+        # filteredAll = [
+        #     task for task in allUserTasks if task.category if hashPrefs.get(task.category)
+        # ]
 
         similar_users = findKSimilarUsers(api.getUsersByCluster(user.cluster), user, 5)
         similar_users_ids = [user.user_id for user in similar_users]
@@ -775,6 +782,10 @@ def recommend_weekly_tasks(
                     userGivens=userTs,
                     numberOfTasks=average
                 )
+                for task in tasks_to_recommend:
+                    logger.info(f'Cat: {task['category']}')
+                    logger.info(f'Confidence: {confidenceCalculator(combined,'Exercise')}')
+                    
                 printer = Printer(tasks_to_recommend)
                 printer.print()
                 logger.info(f"Done calling recommend for {day_name}")

@@ -29,3 +29,48 @@ Tasks: task_id='74c67b28-49dd-4840-a211-7076ae1baeef' name='Do stretching exerci
 2024-12-11 02:01:52,107 - AI - INFO - length: 2 , 37
 2024-12-11 02:01:52,107 - AI - INFO - Confidence: 0.4
 2024-12-11 02:01:52,107 - AI - INFO - Done calling recommend for Saturday
+2024-12-12 00:31:49,510 - AI - INFO - Average for Saturday is 5
+2024-12-12 00:31:49,511 - AI - INFO - 
+Tasks: task_id='74c67b28-49dd-4840-a211-7076ae1baeef' name='Do stretching exercises' category='Exercise' start_time='16:00' end_time='18:00' completed=False created_at='2024-11-23T10:40:07' updated_at='2024-12-10T19:38:42'
+
+2024-12-12 00:31:50,628 - AI - INFO - Cat: Work
+2024-12-12 00:31:50,628 - AI - INFO - Confidence: 0.4
+2024-12-12 00:31:50,628 - AI - INFO - Cat: Finance
+2024-12-12 00:31:50,628 - AI - INFO - Confidence: 0.4
+2024-12-12 00:31:50,628 - AI - INFO - Cat: Creative
+2024-12-12 00:31:50,628 - AI - INFO - Confidence: 0.4
+2024-12-12 00:31:50,628 - AI - INFO - Cat: Exercise
+2024-12-12 00:31:50,628 - AI - INFO - Confidence: 0.4
+2024-12-12 00:31:50,628 - AI - INFO - Cat: Exercise
+2024-12-12 00:31:50,628 - AI - INFO - Confidence: 0.4
+2024-12-12 00:31:50,628 - AI - INFO - Done calling recommend for Saturday
+2024-12-12 00:32:12,149 - AI - INFO - Average for Saturday is 5
+2024-12-12 00:32:12,149 - AI - INFO - 
+Tasks: task_id='74c67b28-49dd-4840-a211-7076ae1baeef' name='Do stretching exercises' category='Exercise' start_time='16:00' end_time='18:00' completed=False created_at='2024-11-23T10:40:07' updated_at='2024-12-10T19:38:42'
+
+2024-12-12 00:32:13,041 - AI - INFO - Cat: Exercise
+2024-12-12 00:32:13,041 - AI - INFO - Confidence: 0.4
+2024-12-12 00:32:13,041 - AI - INFO - Cat: Creative
+2024-12-12 00:32:13,041 - AI - INFO - Confidence: 0.4
+2024-12-12 00:32:13,041 - AI - INFO - Cat: Exercise
+2024-12-12 00:32:13,041 - AI - INFO - Confidence: 0.4
+2024-12-12 00:32:13,041 - AI - INFO - Cat: Finance
+2024-12-12 00:32:13,041 - AI - INFO - Confidence: 0.4
+2024-12-12 00:32:13,041 - AI - INFO - Cat: Personal
+2024-12-12 00:32:13,041 - AI - INFO - Confidence: 0.4
+2024-12-12 00:32:13,041 - AI - INFO - Done calling recommend for Saturday
+2024-12-12 10:33:42,184 - AI - INFO - Average for Saturday is 5
+2024-12-12 10:33:42,185 - AI - INFO - 
+Tasks: task_id='110fce91-28a5-4ffd-99d9-a66819073a12' name='Watch a documentary' category='Learning' start_time='16:00' end_time='18:00' completed=False created_at='2024-11-23T10:40:04' updated_at='2024-11-23T10:40:04'
+
+2024-12-12 10:33:43,739 - AI - INFO - Cat: Creative
+2024-12-12 10:33:43,739 - AI - INFO - Confidence: 0.8
+2024-12-12 10:33:43,739 - AI - INFO - Cat: Learning
+2024-12-12 10:33:43,740 - AI - INFO - Confidence: 0.8
+2024-12-12 10:33:43,740 - AI - INFO - Cat: Work
+2024-12-12 10:33:43,740 - AI - INFO - Confidence: 0.8
+2024-12-12 10:33:43,740 - AI - INFO - Cat: Creative
+2024-12-12 10:33:43,740 - AI - INFO - Confidence: 0.8
+2024-12-12 10:33:43,740 - AI - INFO - Cat: Creative
+2024-12-12 10:33:43,740 - AI - INFO - Confidence: 0.8
+2024-12-12 10:33:43,740 - AI - INFO - Done calling recommend for Saturday

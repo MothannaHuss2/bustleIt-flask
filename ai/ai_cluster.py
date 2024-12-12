@@ -746,7 +746,7 @@ def recommend_weekly_tasks(
         
         user_tasks_df = pd.DataFrame(all_tasks, columns=['name', 'category','completed'])
         
-        avg_completion = int(user_tasks_df['completed'].mean())
+        avg_completion = int(user_tasks_df['completed'].mean()) if user_tasks_df['completed'].mean() > 0 else 0
         
         
 

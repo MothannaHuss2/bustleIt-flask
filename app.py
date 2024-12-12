@@ -9,10 +9,12 @@ logger = logging.getLogger()
 app = Flask(__name__)
 
         
-@app.cli.command("retrain_model")
+@app.route("/retrain")
 def retrain():
     try:
-        AI.retrainModel()
+        retrained = AI.retrainModel()
+        return jsonify(
+            retrained)
     except Exception as e:
         logger.info('#'*10)
         logger.info(f'Error retraining: {e}')

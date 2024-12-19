@@ -40,7 +40,6 @@ def getUserById(id: str) -> ClusteredProfile:
         }
         response = requests.get(url, headers=headers)
         user = response.json()
-        print(user)
         casted = ClusteredProfile(user_id=user['user_id'], scores=user['scores'], preferences=user['preferences'], cluster=1)
         return casted
     except Exception as e:

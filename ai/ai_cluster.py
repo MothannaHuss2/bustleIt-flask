@@ -17,7 +17,6 @@ import time
 import heapq 
 from tasks import getTasksJson
 from utils.llm import chain
-from printer import Printer
 import os
 class AiClusteredProfile(BaseModel):
     id: str
@@ -785,9 +784,7 @@ def recommend_weekly_tasks(
                 for task in tasks_to_recommend:
                     logger.info(f'Cat: {task['category']}')
                     logger.info(f'Confidence: {confidenceCalculator(combined,'Exercise')}')
-                    
-                printer = Printer(tasks_to_recommend)
-                printer.print()
+
                 logger.info(f"Done calling recommend for {day_name}")
                 try:
                     recommended_tasks = get_recommended_tasks(

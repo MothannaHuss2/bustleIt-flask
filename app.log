@@ -1,76 +1,11 @@
-2024-12-11 02:01:01,284 - AI - INFO - 
-Tasks: task_id='74c67b28-49dd-4840-a211-7076ae1baeef' name='Do stretching exercises' category='Exercise' start_time='16:00' end_time='18:00' completed=False created_at='2024-11-23T10:40:07' updated_at='2024-12-10T19:38:42'
+2024-12-13 23:31:19,642 - __main__ - INFO - 
+Generated tasks for languages are: 
+tasks=[Task(name='Start learning a new language using an app', category='languages'), Task(name='Attend a language exchange event', category='languages'), Task(name='Join an online language learning community', category='languages'), Task(name='Watch a movie in a foreign language with subtitles', category='languages'), Task(name='Read a book in a foreign language', category='languages'), Task(name='Practice speaking with a language partner', category='languages'), Task(name='Write a short story in a new language', category='languages'), Task(name='Translate a favorite song into another language', category='languages'), Task(name='Label household items with words in a new language', category='languages'), Task(name='Create flashcards for vocabulary practice', category='languages'), Task(name='Listen to a podcast in another language', category='languages'), Task(name='Take an online language course', category='languages'), Task(name='Follow a social media account in a different language', category='languages'), Task(name='Cook a recipe from a country whose language you are learning', category='languages'), Task(name='Learn a song in a new language', category='languages'), Task(name='Set your phone or computer to a different language', category='languages'), Task(name='Join a virtual language practice group', category='languages'), Task(name='Write a daily journal entry in a new language', category='languages'), Task(name='Visit a cultural center or museum related to the language', category='languages'), Task(name='Use language learning software', category='languages'), Task(name='Play a language learning game', category='languages'), Task(name='Watch a YouTube tutorial in another language', category='languages'), Task(name='Learn the alphabet of a new language', category='languages'), Task(name='Practice pronunciation with online tools', category='languages'), Task(name='Teach someone basic phrases in a new language', category='languages'), Task(name='Start a language learning blog', category='languages'), Task(name='Participate in a language immersion day', category='languages'), Task(name='Read an article in a foreign language', category='languages'), Task(name='Watch a news broadcast in another language', category='languages'), Task(name='Join a language club at a local community center', category='languages'), Task(name='Learn idiomatic expressions in a new language', category='languages'), Task(name='Attend a foreign language play or theater production', category='languages'), Task(name='Make a language learning schedule', category='languages'), Task(name='Write a letter to a pen pal in a foreign language', category='languages'), Task(name='Research the history of a language', category='languages'), Task(name='Learn about the culture of a language-speaking country', category='languages'), Task(name='Attend a webinar in a different language', category='languages'), Task(name='Find a tutor for personalized language lessons', category='languages'), Task(name="Create a playlist of songs in the language you're learning", category='languages'), Task(name='Participate in a language challenge or contest', category='languages')]
 
-2024-12-11 02:01:01,295 - AI - INFO - Average for Saturday is 5
-2024-12-11 02:01:01,295 - AI - INFO - 
-Tasks: task_id='74c67b28-49dd-4840-a211-7076ae1baeef' name='Do stretching exercises' category='Exercise' start_time='16:00' end_time='18:00' completed=False created_at='2024-11-23T10:40:07' updated_at='2024-12-10T19:38:42'
+2024-12-13 23:31:42,720 - __main__ - INFO - 
+Generated tasks for volunteering are: 
+tasks=[Task(name='Organize a community clean-up day', category='volunteering'), Task(name='Volunteer at a local food bank', category='volunteering'), Task(name='Help at an animal shelter', category='volunteering'), Task(name='Tutor students in need', category='volunteering'), Task(name='Participate in a tree planting event', category='volunteering'), Task(name='Assist at a retirement home', category='volunteering'), Task(name='Join a local beach clean-up', category='volunteering'), Task(name='Help build homes with Habitat for Humanity', category='volunteering'), Task(name='Volunteer at a hospital', category='volunteering'), Task(name='Participate in a charity walk or run', category='volunteering'), Task(name='Serve meals at a homeless shelter', category='volunteering'), Task(name='Mentor a young professional', category='volunteering'), Task(name='Volunteer at a library', category='volunteering'), Task(name='Organize a clothing drive', category='volunteering'), Task(name='Participate in disaster relief efforts', category='volunteering'), Task(name='Help maintain a community garden', category='volunteering'), Task(name='Volunteer at a youth center', category='volunteering'), Task(name='Assist in organizing a fundraising event', category='volunteering'), Task(name='Be a museum docent', category='volunteering'), Task(name='Help run a blood donation drive', category='volunteering'), Task(name='Offer free classes/workshops in your area of expertise', category='volunteering'), Task(name='Volunteer for a crisis hotline', category='volunteering'), Task(name='Support local arts through volunteering at events', category='volunteering'), Task(name='Volunteer to read to children at a library', category='volunteering'), Task(name='Participate in a park restoration project', category='volunteering'), Task(name='Help out at a community kitchen', category='volunteering'), Task(name='Volunteer as a coach for youth sports', category='volunteering'), Task(name='Assist with a Special Olympics event', category='volunteering'), Task(name='Volunteer at a wildlife conservation project', category='volunteering'), Task(name='Organize a book donation drive', category='volunteering'), Task(name='Be a pen pal for a senior citizen', category='volunteering'), Task(name='Assist at a local farmers market', category='volunteering'), Task(name='Organize a neighborhood safety patrol', category='volunteering'), Task(name='Volunteer to help with community theater productions', category='volunteering'), Task(name='Participate in a river or lake clean-up', category='volunteering'), Task(name='Help at a refugee center', category='volunteering'), Task(name='Support a local food cooperative', category='volunteering'), Task(name='Volunteer for a school event or activity', category='volunteering'), Task(name='Assist with holiday gift wrapping for charity', category='volunteering'), Task(name='Create care packages for military personnel', category='volunteering')]
 
-2024-12-11 02:01:02,275 - AI - INFO - Cat: Personal
-2024-12-11 02:01:02,275 - AI - INFO - length: 2 , 37
-2024-12-11 02:01:02,278 - AI - INFO - Cat: Exercise
-2024-12-11 02:01:02,278 - AI - INFO - length: 2 , 37
-2024-12-11 02:01:51,129 - AI - INFO - Average for Saturday is 5
-2024-12-11 02:01:51,130 - AI - INFO - 
-Tasks: task_id='74c67b28-49dd-4840-a211-7076ae1baeef' name='Do stretching exercises' category='Exercise' start_time='16:00' end_time='18:00' completed=False created_at='2024-11-23T10:40:07' updated_at='2024-12-10T19:38:42'
-
-2024-12-11 02:01:52,107 - AI - INFO - Cat: Work
-2024-12-11 02:01:52,107 - AI - INFO - length: 2 , 37
-2024-12-11 02:01:52,107 - AI - INFO - Confidence: 0.4
-2024-12-11 02:01:52,107 - AI - INFO - Cat: Work
-2024-12-11 02:01:52,107 - AI - INFO - length: 2 , 37
-2024-12-11 02:01:52,107 - AI - INFO - Confidence: 0.4
-2024-12-11 02:01:52,107 - AI - INFO - Cat: Creative
-2024-12-11 02:01:52,107 - AI - INFO - length: 2 , 37
-2024-12-11 02:01:52,107 - AI - INFO - Confidence: 0.4
-2024-12-11 02:01:52,107 - AI - INFO - Cat: Social
-2024-12-11 02:01:52,107 - AI - INFO - length: 2 , 37
-2024-12-11 02:01:52,107 - AI - INFO - Confidence: 0.4
-2024-12-11 02:01:52,107 - AI - INFO - Cat: Career
-2024-12-11 02:01:52,107 - AI - INFO - length: 2 , 37
-2024-12-11 02:01:52,107 - AI - INFO - Confidence: 0.4
-2024-12-11 02:01:52,107 - AI - INFO - Done calling recommend for Saturday
-2024-12-12 00:31:49,510 - AI - INFO - Average for Saturday is 5
-2024-12-12 00:31:49,511 - AI - INFO - 
-Tasks: task_id='74c67b28-49dd-4840-a211-7076ae1baeef' name='Do stretching exercises' category='Exercise' start_time='16:00' end_time='18:00' completed=False created_at='2024-11-23T10:40:07' updated_at='2024-12-10T19:38:42'
-
-2024-12-12 00:31:50,628 - AI - INFO - Cat: Work
-2024-12-12 00:31:50,628 - AI - INFO - Confidence: 0.4
-2024-12-12 00:31:50,628 - AI - INFO - Cat: Finance
-2024-12-12 00:31:50,628 - AI - INFO - Confidence: 0.4
-2024-12-12 00:31:50,628 - AI - INFO - Cat: Creative
-2024-12-12 00:31:50,628 - AI - INFO - Confidence: 0.4
-2024-12-12 00:31:50,628 - AI - INFO - Cat: Exercise
-2024-12-12 00:31:50,628 - AI - INFO - Confidence: 0.4
-2024-12-12 00:31:50,628 - AI - INFO - Cat: Exercise
-2024-12-12 00:31:50,628 - AI - INFO - Confidence: 0.4
-2024-12-12 00:31:50,628 - AI - INFO - Done calling recommend for Saturday
-2024-12-12 00:32:12,149 - AI - INFO - Average for Saturday is 5
-2024-12-12 00:32:12,149 - AI - INFO - 
-Tasks: task_id='74c67b28-49dd-4840-a211-7076ae1baeef' name='Do stretching exercises' category='Exercise' start_time='16:00' end_time='18:00' completed=False created_at='2024-11-23T10:40:07' updated_at='2024-12-10T19:38:42'
-
-2024-12-12 00:32:13,041 - AI - INFO - Cat: Exercise
-2024-12-12 00:32:13,041 - AI - INFO - Confidence: 0.4
-2024-12-12 00:32:13,041 - AI - INFO - Cat: Creative
-2024-12-12 00:32:13,041 - AI - INFO - Confidence: 0.4
-2024-12-12 00:32:13,041 - AI - INFO - Cat: Exercise
-2024-12-12 00:32:13,041 - AI - INFO - Confidence: 0.4
-2024-12-12 00:32:13,041 - AI - INFO - Cat: Finance
-2024-12-12 00:32:13,041 - AI - INFO - Confidence: 0.4
-2024-12-12 00:32:13,041 - AI - INFO - Cat: Personal
-2024-12-12 00:32:13,041 - AI - INFO - Confidence: 0.4
-2024-12-12 00:32:13,041 - AI - INFO - Done calling recommend for Saturday
-2024-12-12 10:33:42,184 - AI - INFO - Average for Saturday is 5
-2024-12-12 10:33:42,185 - AI - INFO - 
-Tasks: task_id='110fce91-28a5-4ffd-99d9-a66819073a12' name='Watch a documentary' category='Learning' start_time='16:00' end_time='18:00' completed=False created_at='2024-11-23T10:40:04' updated_at='2024-11-23T10:40:04'
-
-2024-12-12 10:33:43,739 - AI - INFO - Cat: Creative
-2024-12-12 10:33:43,739 - AI - INFO - Confidence: 0.8
-2024-12-12 10:33:43,739 - AI - INFO - Cat: Learning
-2024-12-12 10:33:43,740 - AI - INFO - Confidence: 0.8
-2024-12-12 10:33:43,740 - AI - INFO - Cat: Work
-2024-12-12 10:33:43,740 - AI - INFO - Confidence: 0.8
-2024-12-12 10:33:43,740 - AI - INFO - Cat: Creative
-2024-12-12 10:33:43,740 - AI - INFO - Confidence: 0.8
-2024-12-12 10:33:43,740 - AI - INFO - Cat: Creative
-2024-12-12 10:33:43,740 - AI - INFO - Confidence: 0.8
-2024-12-12 10:33:43,740 - AI - INFO - Done calling recommend for Saturday
+2024-12-13 23:31:42,723 - __main__ - INFO - Tasks written to tasks.json
+2024-12-13 23:48:08,892 - __main__ - INFO - Schedule: schedule=[ScheduledTasks(name='Join a local sports team or group', category='weight loss', startTime='17:00', endTime='18:00'), ScheduledTasks(name='Write a daily journal entry in a new language', category='languages', startTime='18:15', endTime='19:15'), ScheduledTasks(name='Beat a boss in Elden Ring', category='gaming', startTime='19:30', endTime='20:30'), ScheduledTasks(name='Attend a painting class', category='art', startTime='20:45', endTime='21:45'), ScheduledTasks(name='Visit a local art museum', category='art', startTime='22:00', endTime='23:00')]
+2024-12-13 23:48:59,366 - __main__ - INFO - Schedule: schedule=[ScheduledTasks(name='Attend a local football match', category='football', startTime='17:00', endTime='18:00'), ScheduledTasks(name='Prepare a healthy meal plan for the week', category='weight loss', startTime='18:00', endTime='19:00'), ScheduledTasks(name='Try a new pet-safe cleaning product', category='pets', startTime='19:00', endTime='20:00'), ScheduledTasks(name='Join a Discord server for gamers', category='gaming', startTime='20:00', endTime='21:00')]

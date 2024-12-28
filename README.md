@@ -138,10 +138,149 @@ python -m pytest tests/
 ## Integration
 
 ### External API Integration
-The backend communicates with:
-- NeonDB for data storage
-- OpenAI API for task generation
-- AWS Lambda functions for schedule management
+
+The backend communicates with several external services:
+
+#### NeonDB Integration
+- Handles all persistent data storage
+- Uses PostgreSQL compatible connection
+- Manages user profiles, tasks, and schedules
+
+#### OpenAI API Integration
+- Used for task generation and recommendations
+- Model: GPT-4
+- Implements retry logic and error handling
+- Request format:
+```python
+messages = [
+    SystemMessage(content=prompt),
+    HumanMessage(content=f'Tasks: {tasks}\nWork end time: {work_end_time}\nSleep time: {sleep_time}')
+]
+```
+
+#### External API Communication
+
+##### Base Configuration
+```python
+token = os.getenv("API_TOKEN")
+api_url = os.getenv("BASE_URI")
+```
+
+##### Available Endpoints
+
+1. User Profile Management:
+```python
+# Get users by cluster
+GET /v1/user/profiles?cluster={cluster}
+Headers: Authorization: Bearer {token}
+
+# Get user by ID
+GET /v1/user/profile/{id}
+Headers: Authorization: Bearer {token}
+
+# Get batch user profiles
+POST /v1/user/profiles/batch
+Headers: 
+  - Authorization: Bearer {token}
+  - Content-Type: application/json
+Body: {
+    "user_ids": ["uuid1", "uuid2"]
+}
+```
+
+2. Task Management:
+```python
+# Get all tasks
+GET /v1/tasks
+Headers: Authorization: Bearer {token}
+
+# Get batch tasks
+POST /v1/tasks/batch
+Headers: 
+  - Authorization: Bearer {token}
+  - Content-Type: application/json
+Body: {
+    "user_ids": ["uuid1", "uuid2"]
+}
+
+# Get user schedule
+GET /v1/user/{user_id}/schedule?date={date}&range={range}&skip_empty={boolean}
+Headers: Authorization: Bearer {token}
+```
+
+3. Schedule Generation:
+```python
+# Get daily recommendation
+POST /recommend_daily
+Headers: Content-Type: application/json
+Body: {
+    "user_id": "uuid",
+    "scores": {
+        "introverted": float,
+        "extraverted": float,
+        ...
+    },
+    "preferences": ["pref1", "pref2"],
+    "cluster": int,
+    "work_end_time": int,
+    "sleep_time": int,
+    "work_start_time": int
+}
+
+# Get weekly recommendation
+POST /recommend_weekly
+Body: same as daily recommendation
+```
+
+##### Error Handling
+```python
+try:
+    response = requests.get(url, headers=headers)
+    response.raise_for_status()
+    return response.json()
+except requests.exceptions.RequestException as e:
+    logger.error(f"API request failed: {e}")
+    return None
+```
+
+##### Response Format Examples
+
+1. User Profile Response:
+```json
+{
+    "user_id": "uuid",
+    "scores": {
+        "introverted": 0.7,
+        "extraverted": 0.3,
+        ...
+    },
+    "preferences": ["Sports", "Reading"],
+    "cluster": 1
+}
+```
+
+2. Schedule Response:
+```json
+{
+    "user_id": "uuid",
+    "data": {
+        "2024-12-20": {
+            "total_tasks": 4,
+            "completed_tasks": 2,
+            "tasks": [
+                {
+                    "task_id": "uuid",
+                    "name": "Task Name",
+                    "category": "Category",
+                    "start_time": "HH:MM",
+                    "end_time": "HH:MM",
+                    "completed": false
+                }
+            ]
+        }
+    }
+}
+```
 
 ### Database Schema
 Uses PostgreSQL with the following main tables:

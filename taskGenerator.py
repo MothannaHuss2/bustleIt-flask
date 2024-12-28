@@ -92,42 +92,42 @@ def write():
     with open('tasks1.json', 'w') as f:
         f.write(json_tasks)
         logger.info('Tasks written to tasks.json')
-def scheduler():
-    schedules = []
-    with open('tasks1.json', 'r') as file:
-        loaded = json.load(file)
-        tasks = [task for task in loaded]
-        for i in range(30):
-            day = i+1
-            for j in range(5):
-                tasks_per_day = random.randint(3,6)
-                sample = random.sample(tasks, tasks_per_day)
-                schedule = scheduleGenerator(sample)
-                time.sleep(3)
-                s= []
-                completed = 0
-                for task in schedule.schedule:
-                    value = random.randint(0,1)
-                    if value > 0:
-                        completed +=1
-                    obj = {
-                        'name':task.name,
-                        'category': task.category,
-                        'start_time': f'2024-11-{day if day > 9 else f'{day}0'} {task.startTime}:00 UTC',
-                        'end_time': f'2024-11-{day if day > 9 else f'{day}0'} {task.endTime}:00 UTC',
-                        'completed': True if value == 1 else False,
-                    }
-                    s.append(obj)
+# def scheduler():
+#     schedules = []
+#     with open('tasks1.json', 'r') as file:
+#         loaded = json.load(file)
+#         tasks = [task for task in loaded]
+#         for i in range(30):
+#             day = i+1
+#             for j in range(5):
+#                 tasks_per_day = random.randint(3,6)
+#                 sample = random.sample(tasks, tasks_per_day)
+#                 schedule = scheduleGenerator(sample)
+#                 time.sleep(3)
+#                 s= []
+#                 completed = 0
+#                 for task in schedule.schedule:
+#                     value = random.randint(0,1)
+#                     if value > 0:
+#                         completed +=1
+#                     obj = {
+#                         'name':task.name,
+#                         'category': task.category,
+#                         'start_time': f'2024-11-{day if day > 9 else f'{day}0'} {task.startTime}:00 UTC',
+#                         'end_time': f'2024-11-{day if day > 9 else f'{day}0'} {task.endTime}:00 UTC',
+#                         'completed': True if value == 1 else False,
+#                     }
+#                     s.append(obj)
                 
-                schedules.append({
-                    'id':f'{j}_{day}',
-                    f'2024-11-{day if day > 9 else f'{day}0'}':
-                        {
-                            'total_tasks':len(s),
-                            'completed_tasks': completed,
-                            'tasks':s
-                        }
-                })
+#                 schedules.append({
+#                     'id':f'{j}_{day}',
+#                     f'2024-11-{day if day > 9 else f'{day}0'}':
+#                         {
+#                             'total_tasks':len(s),
+#                             'completed_tasks': completed,
+#                             'tasks':s
+#                         }
+#                 })
     
     json_schedules = json.dumps(schedules)
     with open('schedules.json', 'w') as file:

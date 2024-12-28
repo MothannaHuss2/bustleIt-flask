@@ -67,8 +67,6 @@ bustleIt-flask-main/
 
 ### Prerequisites
 - Python 3.8+
-- PostgreSQL database
-- OpenAI API key
 
 ### Environment Variables
 ```
@@ -292,16 +290,6 @@ Uses PostgreSQL with the following main tables:
 
 The application is designed to be deployed as a containerized service.
 
-### Docker Deployment
-1. Build the image:
-```bash
-docker build -t bustleit-ai .
-```
-
-2. Run the container:
-```bash
-docker run -p 5120:5120 bustleit-ai
-```
 
 ## Contributing
 
@@ -314,7 +302,3 @@ docker run -p 5120:5120 bustleit-ai
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Support
-
-For support, email [support@bustleit.com](mailto:support@bustleit.com) or create an issue in the repository.

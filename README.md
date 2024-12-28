@@ -17,7 +17,6 @@ bustleIt-flask-main/
 ├── tasks.py              # Task definitions and data
 ├── config.py             # Configuration settings
 ├── utils/
-│   ├── llm.py           # Language model integration
 │   └── api.py           # External API communication
 ├── models/              
 │   └── model.pkl        # ML model files
